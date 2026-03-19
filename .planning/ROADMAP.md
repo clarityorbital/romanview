@@ -45,12 +45,12 @@ Plans:
   3. Real Gaia DR3 stars appear at the target pointing within a few seconds, with point sizes reflecting relative brightness
   4. In dense fields (galactic plane), the query automatically limits magnitude to keep star count under ~2000 and a density indicator shows the source count and effective magnitude limit
   5. Stars render in both the sky view and the focal plane detector view at their correct projected positions
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — Data layer: coordinate parser, fixed VizieR queries, adaptive density, useGaiaStars hook
+- [ ] 02-02-PLAN.md — UI wiring: HMS/DMS input, decimal display, GaiaStarLayer, focal plane Gaia rendering
+- [ ] 02-03-PLAN.md — Visual verification of all Phase 2 requirements
 
 ### Phase 3: Planning Workflow
 **Goal**: Users can interactively plan observations with PA constraints, share their setup with collaborators via URL, and export detector footprints for use in DS9
@@ -87,7 +87,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. SIAF Geometry and WCS Engine | 0/3 | Not started | - |
-| 2. Live Sky Data | 0/3 | Not started | - |
+| 1. SIAF Geometry and WCS Engine | 3/3 | Complete | 2026-03-19 |
+| 2. Live Sky Data | 0/3 | Planned | - |
 | 3. Planning Workflow | 0/2 | Not started | - |
 | 4. Advanced Features | 0/2 | Not started | - |
