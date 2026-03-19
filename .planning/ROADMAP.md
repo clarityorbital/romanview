@@ -13,7 +13,7 @@ RomanView transforms from a visually impressive but geometrically approximate ob
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: SIAF Geometry and WCS Engine** - Replace approximate detector layout with SIAF-derived positions and accurate coordinate transforms
-- [ ] **Phase 2: Live Sky Data** - Connect Gaia star catalog and SIMBAD name resolution to show real stars at any target pointing
+- [x] **Phase 2: Live Sky Data** - Connect Gaia star catalog and SIMBAD name resolution to show real stars at any target pointing (completed 2026-03-19)
 - [ ] **Phase 3: Planning Workflow** - Add interactive PA control, shareable URLs, and DS9 export for collaborative observation planning
 - [ ] **Phase 4: Advanced Features** - Dither pattern preview, bright star warnings, and ecliptic coordinate overlay
 
@@ -45,7 +45,7 @@ Plans:
   3. Real Gaia DR3 stars appear at the target pointing within a few seconds, with point sizes reflecting relative brightness
   4. In dense fields (galactic plane), the query automatically limits magnitude to keep star count under ~2000 and a density indicator shows the source count and effective magnitude limit
   5. Stars render in both the sky view and the focal plane detector view at their correct projected positions
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 02-01-PLAN.md — Data layer: coordinate parser, fixed VizieR queries, adaptive density, useGaiaStars hook
@@ -88,6 +88,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. SIAF Geometry and WCS Engine | 3/3 | Complete | 2026-03-19 |
-| 2. Live Sky Data | 1/3 | In Progress | - |
+| 2. Live Sky Data | 3/3 | Complete   | 2026-03-19 |
 | 3. Planning Workflow | 0/2 | Not started | - |
 | 4. Advanced Features | 0/2 | Not started | - |
