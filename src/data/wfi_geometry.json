@@ -1,0 +1,26 @@
+{
+  "detectors": [
+    {"id": "SCA01", "row": 0, "col": 0},
+    {"id": "SCA02", "row": 0, "col": 1},
+    {"id": "SCA03", "row": 0, "col": 2},
+    {"id": "SCA04", "row": 0, "col": 3},
+    {"id": "SCA05", "row": 0, "col": 4},
+    {"id": "SCA06", "row": 0, "col": 5},
+    {"id": "SCA07", "row": 1, "col": 0},
+    {"id": "SCA08", "row": 1, "col": 1},
+    {"id": "SCA09", "row": 1, "col": 2},
+    {"id": "SCA10", "row": 1, "col": 3},
+    {"id": "SCA11", "row": 1, "col": 4},
+    {"id": "SCA12", "row": 1, "col": 5},
+    {"id": "SCA13", "row": 2, "col": 0},
+    {"id": "SCA14", "row": 2, "col": 1},
+    {"id": "SCA15", "row": 2, "col": 2},
+    {"id": "SCA16", "row": 2, "col": 3},
+    {"id": "SCA17", "row": 2, "col": 4},
+    {"id": "SCA18", "row": 2, "col": 5}
+  ],
+  "detector_size_arcmin": 7.5,
+  "gap_arcmin": 0.5,
+  "pixel_scale_arcsec": 0.11,
+  "pixels_per_detector": 4096
+}
