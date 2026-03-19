@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Footprint Accuracy
 
-- [ ] **FOOT-01**: WFI footprint uses SIAF-derived 18-SCA positions with correct inter-detector gaps, 60° FPA rotation, and 0.496° boresight offset
-- [ ] **FOOT-02**: Each SCA is labeled (WFI01-WFI18) on the sky view so observers can identify which detector covers their target
+- [x] **FOOT-01**: WFI footprint uses SIAF-derived 18-SCA positions with correct inter-detector gaps, 60° FPA rotation, and 0.496° boresight offset
+- [x] **FOOT-02**: Each SCA is labeled (WFI01-WFI18) on the sky view so observers can identify which detector covers their target
 - [ ] **FOOT-03**: Position angle follows correct convention: V3PA measured East of North, with 60° FPA rotation applied to detector orientation
-- [ ] **FOOT-04**: WCS coordinate transforms use gnomonic (TAN) projection for accurate sky-to-focal-plane mapping
+- [x] **FOOT-04**: WCS coordinate transforms use gnomonic (TAN) projection for accurate sky-to-focal-plane mapping
 
 ### Target Input
 
@@ -77,10 +77,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOOT-01 | Phase 1 | Pending |
-| FOOT-02 | Phase 1 | Pending |
+| FOOT-01 | Phase 1 | Complete |
+| FOOT-02 | Phase 1 | Complete |
 | FOOT-03 | Phase 1 | Pending |
-| FOOT-04 | Phase 1 | Pending |
+| FOOT-04 | Phase 1 | Complete |
 | TARG-01 | Phase 2 | Pending |
 | TARG-02 | Phase 2 | Pending |
 | TARG-03 | Phase 2 | Pending |
