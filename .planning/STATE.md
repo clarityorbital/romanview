@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-19T20:29:14.556Z"
-last_activity: 2026-03-19 — Completed 01-02-PLAN.md (component rewiring to SIAF/WCS)
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-19T21:19:15Z"
+last_activity: 2026-03-19 — Completed 02-01-PLAN.md (data layer: parseCoords, fixed VizieR, adaptive query, useGaiaStars hook)
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 67
+  total_plans: 4
+  completed_plans: 4
+  percent: 70
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Scientifically accurate WFI footprint placement on the sky with real coordinate transforms, so observers can plan which detectors cover their targets and when Roman can observe them.
-**Current focus:** Phase 1: SIAF Geometry and WCS Engine
+**Current focus:** Phase 2: Live Sky Data
 
 ## Current Position
 
-Phase: 1 of 4 (SIAF Geometry and WCS Engine)
-Plan: 2 of 3 in current phase
+Phase: 2 of 4 (Live Sky Data)
+Plan: 1 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-19 — Completed 01-02-PLAN.md (component rewiring to SIAF/WCS)
+Last activity: 2026-03-19 — Completed 02-01-PLAN.md (data layer: parseCoords, fixed VizieR, adaptive query, useGaiaStars hook)
 
-Progress: [██████░░░░] 67%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [██████░░░░] 67%
 *Updated after each plan completion*
 | Phase 01 P01 | 4min | 3 tasks | 8 files |
 | Phase 01 P02 | 3min | 2 tasks | 3 files |
+| Phase 02 P01 | 4min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work:
 - [Phase 01-02]: Kept TOTAL_FOV_ARCMIN/DEG exports from roman.ts (computed from SIAF corners) for InstrumentPanel compatibility
 - [Phase 01-02]: APA = V3PA - FPA_ROTATION_DEG (= V3PA + 60) is the displayed aperture PA
 - [Phase 01-02]: Star skyToFocalPlane coordinates need sign negation to match V2V3 SVG convention
+- [Phase 02-01]: Mock DOMParser in Node test environment instead of adding jsdom dependency
+- [Phase 02-01]: VizieR column names fixed: RA_ICRS, DE_ICRS, Gmag (was ra, dec, phot_g_mean_mag)
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T20:17:49Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-03-19T21:19:15Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None

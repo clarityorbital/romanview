@@ -16,14 +16,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Target Input
 
-- [ ] **TARG-01**: User can resolve target names to RA/Dec via SIMBAD/Sesame (e.g., "M31" → 10.6847° +41.2687°)
-- [ ] **TARG-02**: User can enter coordinates manually in both HMS/DMS (e.g., 00h42m44s +41°16'09") and decimal degrees
-- [ ] **TARG-03**: Current pointing coordinates displayed in both RA/Dec formats (HMS/DMS and decimal)
+- [x] **TARG-01**: User can resolve target names to RA/Dec via SIMBAD/Sesame (e.g., "M31" → 10.6847° +41.2687°)
+- [x] **TARG-02**: User can enter coordinates manually in both HMS/DMS (e.g., 00h42m44s +41°16'09") and decimal degrees
+- [x] **TARG-03**: Current pointing coordinates displayed in both RA/Dec formats (HMS/DMS and decimal)
 
 ### Star Field
 
-- [ ] **STAR-01**: User sees real Gaia DR3 stars at the target pointing via VizieR TAP cone search (~0.5° radius, magnitude-limited)
-- [ ] **STAR-02**: Star query adapts to field density — tighter magnitude cut in galactic plane, deeper in sparse fields — to keep rendering performant (<2000 stars)
+- [x] **STAR-01**: User sees real Gaia DR3 stars at the target pointing via VizieR TAP cone search (~0.5° radius, magnitude-limited)
+- [x] **STAR-02**: Star query adapts to field density — tighter magnitude cut in galactic plane, deeper in sparse fields — to keep rendering performant (<2000 stars)
 - [ ] **STAR-03**: Star density indicator shows source count and effective magnitude limit for the current field
 
 ### Planning Workflow
@@ -81,11 +81,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOOT-02 | Phase 1 | Complete |
 | FOOT-03 | Phase 1 | Complete |
 | FOOT-04 | Phase 1 | Complete |
-| TARG-01 | Phase 2 | Pending |
-| TARG-02 | Phase 2 | Pending |
-| TARG-03 | Phase 2 | Pending |
-| STAR-01 | Phase 2 | Pending |
-| STAR-02 | Phase 2 | Pending |
+| TARG-01 | Phase 2 | Complete |
+| TARG-02 | Phase 2 | Complete |
+| TARG-03 | Phase 2 | Complete |
+| STAR-01 | Phase 2 | Complete |
+| STAR-02 | Phase 2 | Complete |
 | STAR-03 | Phase 2 | Pending |
 | PLAN-01 | Phase 3 | Pending |
 | PLAN-02 | Phase 3 | Pending |

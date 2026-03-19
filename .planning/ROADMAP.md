@@ -88,6 +88,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. SIAF Geometry and WCS Engine | 3/3 | Complete | 2026-03-19 |
-| 2. Live Sky Data | 0/3 | Planned | - |
+| 2. Live Sky Data | 1/3 | In Progress | - |
 | 3. Planning Workflow | 0/2 | Not started | - |
 | 4. Advanced Features | 0/2 | Not started | - |
