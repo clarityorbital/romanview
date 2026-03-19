@@ -1,57 +1,78 @@
-import wfiData from '../data/wfi_geometry.json';
+import { getAllDetectors, getBoresight } from './siaf';
 
 export interface DetectorInfo {
-  id: string;
-  row: number;
-  col: number;
-  centerX: number; // arcminutes from boresight
-  centerY: number; // arcminutes from boresight
+  id: string;               // "WFI01" through "WFI18"
+  v2Ref: number;           // arcseconds
+  v3Ref: number;           // arcseconds
+  v3IdlYAngle: number;     // degrees (-60 for all WFI)
+  corners_v2v3: [number, number][]; // 4 corner positions in V2V3 arcsec
 }
 
-const { detector_size_arcmin, gap_arcmin } = wfiData;
-const pitch = detector_size_arcmin + gap_arcmin;
-
-// Center the grid: 6 cols (0-5), 3 rows (0-2)
-const colOffset = (5 * pitch) / 2;
-const rowOffset = (2 * pitch) / 2;
-
-export const WFI_DETECTORS: DetectorInfo[] = wfiData.detectors.map((d) => ({
-  id: d.id,
-  row: d.row,
-  col: d.col,
-  centerX: d.col * pitch - colOffset,
-  centerY: d.row * pitch - rowOffset,
+/** All 18 WFI detectors with SIAF-derived positions */
+export const WFI_DETECTORS: DetectorInfo[] = getAllDetectors().map(det => ({
+  id: det.id,
+  v2Ref: det.v2Ref,
+  v3Ref: det.v3Ref,
+  v3IdlYAngle: det.v3IdlYAngle,
+  corners_v2v3: det.corners_v2v3,
 }));
 
-export const DETECTOR_SIZE_ARCMIN = detector_size_arcmin;
-export const GAP_ARCMIN = gap_arcmin;
-export const PIXEL_SCALE_ARCSEC = wfiData.pixel_scale_arcsec;
-export const PIXELS_PER_DETECTOR = wfiData.pixels_per_detector;
+/** WFI boresight (WFI_CEN) V2/V3 position */
+export const WFI_BORESIGHT = getBoresight();
 
-/** Total FOV extent in arcminutes */
+/** Pixel scale in arcseconds per pixel */
+export const PIXEL_SCALE_ARCSEC = 0.11;
+
+/** Pixels per detector side (H4RG-10) */
+export const PIXELS_PER_DETECTOR = 4096;
+
+/**
+ * Total FOV extent computed from SIAF detector corner extents.
+ * This replaces the old grid-based constants with SIAF-accurate values.
+ */
+function computeFovFromSiaf(): { widthArcmin: number; heightArcmin: number } {
+  const allCorners = WFI_DETECTORS.flatMap(d =>
+    d.corners_v2v3.map(([v2, v3]) => ({
+      dv2: (v2 - WFI_BORESIGHT.v2) / 60,  // arcminutes
+      dv3: (v3 - WFI_BORESIGHT.v3) / 60,
+    }))
+  );
+  const minV2 = Math.min(...allCorners.map(c => c.dv2));
+  const maxV2 = Math.max(...allCorners.map(c => c.dv2));
+  const minV3 = Math.min(...allCorners.map(c => c.dv3));
+  const maxV3 = Math.max(...allCorners.map(c => c.dv3));
+  return {
+    widthArcmin: maxV2 - minV2,
+    heightArcmin: maxV3 - minV3,
+  };
+}
+
+const siafFov = computeFovFromSiaf();
+
+/** Total FOV extent in arcminutes (SIAF-derived) */
 export const TOTAL_FOV_ARCMIN = {
-  width: 6 * detector_size_arcmin + 5 * gap_arcmin,
-  height: 3 * detector_size_arcmin + 2 * gap_arcmin,
+  width: siafFov.widthArcmin,
+  height: siafFov.heightArcmin,
 };
 
-/** Total FOV extent in degrees */
+/** Total FOV extent in degrees (SIAF-derived) */
 export const TOTAL_FOV_DEG = {
-  width: TOTAL_FOV_ARCMIN.width / 60,
-  height: TOTAL_FOV_ARCMIN.height / 60,
+  width: siafFov.widthArcmin / 60,
+  height: siafFov.heightArcmin / 60,
 };
 
 /** WFI filter options */
 export const WFI_FILTERS = [
-  { name: 'F062', wavelength: '0.48-0.76 μm', description: 'R062 (wide)' },
-  { name: 'F087', wavelength: '0.76-0.98 μm', description: 'Z087' },
-  { name: 'F106', wavelength: '0.93-1.19 μm', description: 'Y106' },
-  { name: 'F129', wavelength: '1.13-1.45 μm', description: 'J129' },
-  { name: 'F146', wavelength: '0.93-2.00 μm', description: 'Wide (F146)' },
-  { name: 'F158', wavelength: '1.38-1.77 μm', description: 'H158' },
-  { name: 'F184', wavelength: '1.68-2.00 μm', description: 'F184' },
-  { name: 'F213', wavelength: '1.95-2.30 μm', description: 'K213' },
-  { name: 'GRISM', wavelength: '1.00-1.93 μm', description: 'Grism spectroscopy' },
-  { name: 'PRISM', wavelength: '0.75-1.80 μm', description: 'Prism spectroscopy' },
+  { name: 'F062', wavelength: '0.48-0.76 \u03BCm', description: 'R062 (wide)' },
+  { name: 'F087', wavelength: '0.76-0.98 \u03BCm', description: 'Z087' },
+  { name: 'F106', wavelength: '0.93-1.19 \u03BCm', description: 'Y106' },
+  { name: 'F129', wavelength: '1.13-1.45 \u03BCm', description: 'J129' },
+  { name: 'F146', wavelength: '0.93-2.00 \u03BCm', description: 'Wide (F146)' },
+  { name: 'F158', wavelength: '1.38-1.77 \u03BCm', description: 'H158' },
+  { name: 'F184', wavelength: '1.68-2.00 \u03BCm', description: 'F184' },
+  { name: 'F213', wavelength: '1.95-2.30 \u03BCm', description: 'K213' },
+  { name: 'GRISM', wavelength: '1.00-1.93 \u03BCm', description: 'Grism spectroscopy' },
+  { name: 'PRISM', wavelength: '0.75-1.80 \u03BCm', description: 'Prism spectroscopy' },
 ] as const;
 
 /** Dither patterns */

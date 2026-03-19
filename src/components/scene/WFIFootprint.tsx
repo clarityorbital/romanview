@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { Line, Text } from '@react-three/drei';
-import { WFI_DETECTORS, DETECTOR_SIZE_ARCMIN } from '../../lib/roman';
+import { WFI_DETECTORS, WFI_BORESIGHT } from '../../lib/roman';
 import { raDecToCartesian, positionAngle } from '../../lib/coordinates';
+import { v2v3ToSky } from '../../lib/wcs';
 import type { SunPosition } from '../../lib/constraints';
 
 interface WFIFootprintProps {
@@ -12,26 +13,8 @@ interface WFIFootprintProps {
   visible: boolean;
 }
 
-/**
- * Apply a PA rotation to focal-plane offsets (arcmin) around the boresight.
- * PA is measured east of north (standard astronomical convention).
- * Returns rotated (dRa_arcmin, dDec_arcmin).
- */
-function rotateByPA(dRaArcmin: number, dDecArcmin: number, paDeg: number): [number, number] {
-  const pa = (paDeg * Math.PI) / 180;
-  const cosPA = Math.cos(pa);
-  const sinPA = Math.sin(pa);
-  // Rotation: +PA rotates north toward east
-  // In focal plane coords: x = east (RA increases), y = north (Dec increases)
-  // Rotated: x' = x*cos(PA) + y*sin(PA), y' = -x*sin(PA) + y*cos(PA)
-  return [
-    dRaArcmin * cosPA + dDecArcmin * sinPA,
-    -dRaArcmin * sinPA + dDecArcmin * cosPA,
-  ];
-}
-
 export function WFIFootprint({ targetRa, targetDec, sunPosition, visible }: WFIFootprintProps) {
-  const pa = useMemo(
+  const v3pa = useMemo(
     () => positionAngle(targetRa, targetDec, sunPosition.ra, sunPosition.dec),
     [targetRa, targetDec, sunPosition.ra, sunPosition.dec]
   );
@@ -39,45 +22,28 @@ export function WFIFootprint({ targetRa, targetDec, sunPosition, visible }: WFIF
   const footprint = useMemo(() => {
     if (!visible) return null;
 
-    const halfSize = DETECTOR_SIZE_ARCMIN / 2; // arcmin
-
     return WFI_DETECTORS.map((det) => {
-      // Detector center in focal-plane arcmin (before rotation)
-      const fpX = det.centerX; // arcmin, along RA direction
-      const fpY = det.centerY; // arcmin, along Dec direction
+      // Project each detector's 4 V2V3 corners to sky RA/Dec via the WCS engine
+      const skyCorners = det.corners_v2v3.map(([v2, v3]) =>
+        v2v3ToSky(v2, v3, WFI_BORESIGHT.v2, WFI_BORESIGHT.v3, targetRa, targetDec, v3pa)
+      );
 
-      // Rotate by position angle
-      const [rotX, rotY] = rotateByPA(fpX, fpY, pa);
-
-      // Convert arcmin offsets to degree offsets on sky
-      const cosDec = Math.cos((targetDec * Math.PI) / 180);
-      const raOffset = cosDec > 0.01 ? (rotX / 60) / cosDec : rotX / 60;
-      const decOffset = rotY / 60;
-
-      const centerRa = targetRa + raOffset;
-      const centerDec = targetDec + decOffset;
-
-      // Detector corners (rotated)
-      const cornerOffsets: [number, number][] = [
-        [-halfSize, -halfSize],
-        [+halfSize, -halfSize],
-        [+halfSize, +halfSize],
-        [-halfSize, +halfSize],
-      ];
-
-      const corners: [number, number, number][] = cornerOffsets.map(([cx, cy]) => {
-        // Rotate corner offsets relative to detector center, then add to detector center position
-        const [rcx, rcy] = rotateByPA(fpX + cx, fpY + cy, pa);
-        const cRaOff = cosDec > 0.01 ? (rcx / 60) / cosDec : rcx / 60;
-        const cDecOff = rcy / 60;
-        return raDecToCartesian(targetRa + cRaOff, targetDec + cDecOff, 99).toArray() as [number, number, number];
-      });
+      // Convert sky positions to 3D Cartesian for Three.js rendering
+      const corners: [number, number, number][] = skyCorners.map(({ ra, dec }) =>
+        raDecToCartesian(ra, dec, 99).toArray() as [number, number, number]
+      );
       // Close the loop
       corners.push(corners[0]);
 
-      const center = raDecToCartesian(centerRa, centerDec, 99);
+      // Detector center on sky from V2Ref/V3Ref
+      const centerSky = v2v3ToSky(
+        det.v2Ref, det.v3Ref,
+        WFI_BORESIGHT.v2, WFI_BORESIGHT.v3,
+        targetRa, targetDec, v3pa
+      );
+      const center = raDecToCartesian(centerSky.ra, centerSky.dec, 99);
 
-      // Corner tick marks
+      // Corner tick marks for visual emphasis
       const tickLen = 0.015;
       const cornerTicks: [number, number, number][][] = [];
       for (let c = 0; c < 4; c++) {
@@ -97,7 +63,7 @@ export function WFIFootprint({ targetRa, targetDec, sunPosition, visible }: WFIF
 
       return { id: det.id, corners, center, cornerTicks };
     });
-  }, [targetRa, targetDec, pa, visible]);
+  }, [targetRa, targetDec, v3pa, visible]);
 
   if (!footprint) return null;
 
