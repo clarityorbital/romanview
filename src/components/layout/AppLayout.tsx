@@ -10,28 +10,32 @@ interface AppLayoutProps {
 
 export function AppLayout({ viewport, sidebar, bottomBar, header, coordinateDisplay }: AppLayoutProps) {
   return (
-    <div className="w-full h-full flex flex-col bg-roman-bg">
-      {/* Header */}
+    <div className="w-full h-full relative bg-roman-bg overflow-hidden">
+      {/* 3D Viewport — full screen */}
+      <div className="absolute inset-0">
+        {viewport}
+      </div>
+
+      {/* Header — floating top bar */}
       {header}
 
-      <div className="flex-1 flex min-h-0">
-        {/* 3D Viewport */}
-        <div className="flex-1 relative">
-          {viewport}
-          {coordinateDisplay}
-        </div>
-
-        {/* Side Panel */}
-        <div className="w-80 border-l border-roman-border bg-roman-surface/50 backdrop-blur-xl flex flex-col">
-          <div className="flex-1 overflow-y-auto p-4 space-y-5 pt-14">
+      {/* Side Panel — floating HUD overlay */}
+      <div className="absolute top-11 right-2 bottom-14 w-72 z-10 flex flex-col pointer-events-none">
+        <div className="hud-panel relative rounded-sm flex-1 min-h-0 flex flex-col pointer-events-auto">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {sidebar}
           </div>
         </div>
       </div>
 
-      {/* Bottom Timeline Bar */}
-      <div className="h-auto border-t border-roman-border bg-roman-surface/50 backdrop-blur-xl p-3 px-4">
-        {bottomBar}
+      {/* Coordinate Display — floating bottom-left */}
+      {coordinateDisplay}
+
+      {/* Bottom Timeline Bar — floating */}
+      <div className="absolute bottom-2 left-2 right-2 z-10 pointer-events-auto">
+        <div className="hud-panel relative rounded-sm px-3 py-2">
+          {bottomBar}
+        </div>
       </div>
     </div>
   );

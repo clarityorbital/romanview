@@ -42,28 +42,33 @@ export function ObservabilityTimeline({
   if (targets.length === 0) return null;
 
   return (
-    <div className="space-y-2">
-      <h2 className="text-xs font-semibold tracking-wider uppercase text-roman-text-dim">
-        Observability Timeline
-      </h2>
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="hud-label">Observability</span>
+        {hoveredInfo ? (
+          <span className="text-[9px] font-mono text-roman-text-dim">
+            {hoveredInfo.name} / {hoveredInfo.date} / <span className={
+              hoveredInfo.status === 'observable' ? 'text-roman-success' :
+              hoveredInfo.status === 'near-constraint' ? 'text-roman-warning' : 'text-roman-danger'
+            }>{hoveredInfo.status}</span>
+          </span>
+        ) : (
+          <span className="text-[9px] font-mono text-roman-text-muted">
+            {startDate.toISOString().split('T')[0]} — {endDate.toISOString().split('T')[0]}
+          </span>
+        )}
+      </div>
 
-      {hoveredInfo && (
-        <div className="text-[10px] text-roman-text-dim font-mono">
-          {hoveredInfo.name} — {hoveredInfo.date} — {hoveredInfo.status}
-        </div>
-      )}
-
-      <div className="space-y-1.5">
+      <div className="space-y-0.5">
         {windows.map(({ target, windows: wins }) => (
           <div key={target.id} className="flex items-center gap-2">
             <button
               onClick={() => onSelectTarget(target.id)}
-              className="w-20 text-[10px] text-roman-text truncate text-left hover:text-roman-accent transition-colors shrink-0"
+              className="w-16 text-[9px] font-mono text-roman-text-dim truncate text-left hover:text-roman-accent transition-colors shrink-0"
             >
               {target.name}
             </button>
-            <div className="flex-1 h-3 bg-roman-bg/60 rounded-sm border border-roman-border overflow-hidden relative cursor-pointer">
-              {/* Timeline bars */}
+            <div className="flex-1 h-2.5 bg-black/30 rounded-sm border border-roman-border overflow-hidden relative cursor-pointer">
               <svg className="w-full h-full" preserveAspectRatio="none" viewBox={`0 0 ${totalDays} 1`}>
                 {wins.map((w, i) => {
                   const day = Math.floor((w.date.getTime() - startDate.getTime()) / 86400000);
@@ -81,7 +86,7 @@ export function ObservabilityTimeline({
                       width={2.5}
                       height={1}
                       fill={color}
-                      opacity={0.7}
+                      opacity={0.8}
                       onMouseEnter={() =>
                         setHoveredInfo({
                           name: target.name,
@@ -95,7 +100,7 @@ export function ObservabilityTimeline({
                   );
                 })}
                 {/* Current epoch marker */}
-                <rect x={epochDay - 0.5} y={0} width={1} height={1} fill="#06b6d4" opacity={0.9} />
+                <rect x={epochDay - 0.3} y={0} width={0.6} height={1} fill="#06b6d4" opacity={1} />
               </svg>
             </div>
           </div>
@@ -103,18 +108,18 @@ export function ObservabilityTimeline({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-3 text-[9px] text-roman-text-dim">
+      <div className="flex items-center gap-3 text-[8px] font-mono text-roman-text-muted">
         <span className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-sm bg-roman-success" /> Observable
+          <div className="w-2 h-1.5 rounded-sm bg-roman-success" /> OBS
         </span>
         <span className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-sm bg-roman-warning" /> Near constraint
+          <div className="w-2 h-1.5 rounded-sm bg-roman-warning" /> NEAR
         </span>
         <span className="flex items-center gap-1">
-          <div className="w-2 h-2 rounded-sm bg-roman-danger" /> Excluded
+          <div className="w-2 h-1.5 rounded-sm bg-roman-danger" /> EXCL
         </span>
         <span className="flex items-center gap-1">
-          <div className="w-2 h-1 bg-roman-accent" /> Current epoch
+          <div className="w-2 h-0.5 bg-roman-accent" /> EPOCH
         </span>
       </div>
     </div>

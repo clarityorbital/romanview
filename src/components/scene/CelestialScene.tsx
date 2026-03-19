@@ -99,12 +99,13 @@ export function CelestialScene({
 
       <EffectComposer>
         <Bloom
-          intensity={0.8}
-          luminanceThreshold={0.6}
-          luminanceSmoothing={0.9}
-          radius={0.8}
+          intensity={1.2}
+          luminanceThreshold={0.4}
+          luminanceSmoothing={0.7}
+          radius={0.9}
+          mipmapBlur
         />
-        <Vignette offset={0.3} darkness={0.7} />
+        <Vignette offset={0.2} darkness={0.6} />
       </EffectComposer>
     </Canvas>
   );

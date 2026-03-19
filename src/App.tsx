@@ -58,7 +58,7 @@ function App() {
       sidebar={
         <>
           <TargetSearch onAddTarget={handleAddTarget} />
-          <div className="border-t border-roman-border" />
+          <div className="h-px bg-white/[0.04]" />
           <TargetList
             targets={targets}
             selectedTargetId={selectedTargetId}
@@ -66,9 +66,9 @@ function App() {
             onSelect={selectTarget}
             onRemove={removeTarget}
           />
-          <div className="border-t border-roman-border" />
+          <div className="h-px bg-white/[0.04]" />
           <EpochSlider epoch={epoch} onChange={setEpoch} />
-          <div className="border-t border-roman-border" />
+          <div className="h-px bg-white/[0.04]" />
           <InstrumentPanel />
         </>
       }

@@ -65,39 +65,37 @@ export function TargetSearch({ onAddTarget }: TargetSearchProps) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-semibold tracking-wider uppercase text-roman-text-dim">
-          Target Search
-        </h2>
+        <span className="hud-label">Target Search</span>
         <button
           onClick={() => setManualMode(!manualMode)}
-          className="text-[10px] text-roman-accent hover:text-roman-accent/80 transition-colors"
+          className="text-[9px] font-mono tracking-wider text-roman-accent/60 hover:text-roman-accent transition-colors"
         >
-          {manualMode ? 'SIMBAD Search' : 'Manual RA/Dec'}
+          {manualMode ? '[SIMBAD]' : '[RA/DEC]'}
         </button>
       </div>
 
       {!manualMode ? (
         <>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-roman-text-dim" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-roman-text-muted" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search SIMBAD (e.g. M31, NGC 1234)"
-              className="w-full pl-9 pr-3 py-2 bg-roman-bg/60 border border-roman-border rounded-lg text-sm text-roman-text placeholder:text-roman-text-dim/50 focus:outline-none focus:border-roman-accent/50 transition-colors"
+              placeholder="SIMBAD lookup — M31, NGC 1234..."
+              className="hud-input pl-8 font-mono text-[11px]"
             />
             {loading && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-roman-accent animate-spin" />
+              <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-roman-accent animate-spin" />
             )}
           </div>
 
-          {error && <p className="text-xs text-roman-danger/80">{error}</p>}
+          {error && <p className="text-[10px] font-mono text-roman-danger/70">{error}</p>}
 
           {results.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {results.map((r, i) => (
                 <button
                   key={i}
@@ -106,51 +104,57 @@ export function TargetSearch({ onAddTarget }: TargetSearchProps) {
                     setQuery('');
                     setResults([]);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-roman-bg/40 border border-roman-border hover:border-roman-accent/40 transition-all group"
+                  className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-sm bg-black/30 border border-roman-border hover:border-roman-accent/30 transition-all duration-150 group"
                 >
                   <div className="text-left">
-                    <div className="text-sm text-roman-text">{r.name}</div>
-                    <div className="text-[10px] text-roman-text-dim font-mono">
-                      RA {r.ra.toFixed(4)}° Dec {r.dec.toFixed(4)}°
+                    <div className="text-[11px] text-roman-text font-medium">{r.name}</div>
+                    <div className="text-[10px] text-roman-text-dim font-mono mt-0.5">
+                      {r.ra.toFixed(5)}  {r.dec >= 0 ? '+' : ''}{r.dec.toFixed(5)}
                     </div>
                   </div>
-                  <Plus className="w-4 h-4 text-roman-text-dim group-hover:text-roman-accent transition-colors" />
+                  <Plus className="w-3.5 h-3.5 text-roman-text-muted group-hover:text-roman-accent transition-colors" />
                 </button>
               ))}
             </div>
           )}
         </>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <input
             type="text"
             value={manualName}
             onChange={(e) => setManualName(e.target.value)}
-            placeholder="Target name (optional)"
-            className="w-full px-3 py-2 bg-roman-bg/60 border border-roman-border rounded-lg text-sm text-roman-text placeholder:text-roman-text-dim/50 focus:outline-none focus:border-roman-accent/50"
+            placeholder="Designation (optional)"
+            className="hud-input font-mono text-[11px]"
           />
-          <div className="grid grid-cols-2 gap-2">
-            <input
-              type="number"
-              value={manualRa}
-              onChange={(e) => setManualRa(e.target.value)}
-              placeholder="RA (degrees)"
-              className="px-3 py-2 bg-roman-bg/60 border border-roman-border rounded-lg text-sm text-roman-text placeholder:text-roman-text-dim/50 focus:outline-none focus:border-roman-accent/50"
-            />
-            <input
-              type="number"
-              value={manualDec}
-              onChange={(e) => setManualDec(e.target.value)}
-              placeholder="Dec (degrees)"
-              className="px-3 py-2 bg-roman-bg/60 border border-roman-border rounded-lg text-sm text-roman-text placeholder:text-roman-text-dim/50 focus:outline-none focus:border-roman-accent/50"
-            />
+          <div className="grid grid-cols-2 gap-1.5">
+            <div>
+              <label className="text-[8px] font-mono text-roman-text-muted tracking-wider mb-0.5 block">RA (deg)</label>
+              <input
+                type="number"
+                value={manualRa}
+                onChange={(e) => setManualRa(e.target.value)}
+                placeholder="0.000"
+                className="hud-input font-mono text-[11px]"
+              />
+            </div>
+            <div>
+              <label className="text-[8px] font-mono text-roman-text-muted tracking-wider mb-0.5 block">DEC (deg)</label>
+              <input
+                type="number"
+                value={manualDec}
+                onChange={(e) => setManualDec(e.target.value)}
+                placeholder="0.000"
+                className="hud-input font-mono text-[11px]"
+              />
+            </div>
           </div>
           <button
             onClick={handleAddManual}
             disabled={!manualRa || !manualDec}
-            className="w-full py-2 bg-roman-accent/20 border border-roman-accent/30 rounded-lg text-sm text-roman-accent hover:bg-roman-accent/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full py-1.5 bg-roman-accent/10 border border-roman-accent/25 rounded-sm text-[10px] font-mono tracking-wider text-roman-accent hover:bg-roman-accent/20 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            Add Target
+            + ADD TARGET
           </button>
         </div>
       )}

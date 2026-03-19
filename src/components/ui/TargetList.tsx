@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Crosshair, Trash2, Eye } from 'lucide-react';
+import { Crosshair, X } from 'lucide-react';
 import { formatRA, formatDec } from '../../lib/coordinates';
 import { checkObservability } from '../../lib/constraints';
 import type { Target } from '../../hooks/useTargets';
@@ -15,34 +15,47 @@ interface TargetListProps {
 export function TargetList({ targets, selectedTargetId, epoch, onSelect, onRemove }: TargetListProps) {
   if (targets.length === 0) {
     return (
-      <div className="py-8 text-center">
-        <Eye className="w-8 h-8 mx-auto mb-2 text-roman-text-dim/30" />
-        <p className="text-xs text-roman-text-dim/50">No targets added</p>
-        <p className="text-[10px] text-roman-text-dim/30 mt-1">Search SIMBAD or enter coordinates</p>
+      <div className="py-4 text-center">
+        <Crosshair className="w-5 h-5 mx-auto mb-1.5 text-roman-text-dim/20" />
+        <p className="text-[10px] font-mono text-roman-text-muted">NO TARGETS LOADED</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-1.5">
-      <h2 className="text-xs font-semibold tracking-wider uppercase text-roman-text-dim mb-2">
-        Targets ({targets.length})
-      </h2>
-      {targets.map((target) => (
-        <TargetItem
-          key={target.id}
-          target={target}
-          selected={target.id === selectedTargetId}
-          epoch={epoch}
-          onSelect={() => onSelect(target.id)}
-          onRemove={() => onRemove(target.id)}
-        />
-      ))}
+    <div className="space-y-1">
+      <div className="flex items-center justify-between mb-1">
+        <span className="hud-label">Targets</span>
+        <span className="text-[9px] font-mono text-roman-text-muted">{targets.length} loaded</span>
+      </div>
+
+      {/* Table header */}
+      <div className="grid grid-cols-[auto_1fr_5.5rem_5.5rem_1.5rem] gap-x-2 px-2 py-0.5 text-[8px] font-mono text-roman-text-muted tracking-wider">
+        <span></span>
+        <span>ID</span>
+        <span className="text-right">RA</span>
+        <span className="text-right">DEC</span>
+        <span></span>
+      </div>
+
+      {/* Target rows */}
+      <div className="space-y-px">
+        {targets.map((target) => (
+          <TargetRow
+            key={target.id}
+            target={target}
+            selected={target.id === selectedTargetId}
+            epoch={epoch}
+            onSelect={() => onSelect(target.id)}
+            onRemove={() => onRemove(target.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
-function TargetItem({
+function TargetRow({
   target,
   selected,
   epoch,
@@ -66,56 +79,39 @@ function TargetItem({
       : 'bg-roman-success'
     : 'bg-roman-danger';
 
-  const statusText = obs.observable
-    ? obs.nearConstraint
-      ? 'Near constraint'
-      : 'Observable'
-    : 'Excluded';
-
   return (
     <button
       onClick={onSelect}
-      className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all duration-200 group ${
+      className={`w-full grid grid-cols-[auto_1fr_5.5rem_5.5rem_1.5rem] gap-x-2 items-center px-2 py-1.5 rounded-sm border transition-all duration-100 group text-left ${
         selected
-          ? 'bg-roman-accent/10 border-roman-accent/40'
-          : 'bg-roman-bg/40 border-roman-border hover:border-roman-accent/20'
+          ? 'bg-roman-accent/8 border-roman-accent/25'
+          : 'bg-transparent border-transparent hover:bg-white/[0.02] hover:border-roman-border'
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full ${statusColor} shrink-0`} />
-            <span className="text-sm font-medium text-roman-text truncate">
-              {target.name}
-            </span>
-          </div>
-          <div className="mt-1 flex items-center gap-3 text-[10px] font-mono text-roman-text-dim">
-            <span>{formatRA(target.ra)}</span>
-            <span>{formatDec(target.dec)}</span>
-          </div>
-          <div className="mt-1 flex items-center gap-2 text-[10px]">
-            <span className={`${obs.observable ? (obs.nearConstraint ? 'text-roman-warning' : 'text-roman-success') : 'text-roman-danger'}`}>
-              {statusText}
-            </span>
-            <span className="text-roman-text-dim">
-              Sun: {obs.sunSeparation.toFixed(1)}°
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-          <div
-            className="p-1 rounded hover:bg-roman-accent/20 transition-colors"
-            onClick={(e) => { e.stopPropagation(); onSelect(); }}
-          >
-            <Crosshair className="w-3.5 h-3.5 text-roman-accent" />
-          </div>
-          <div
-            className="p-1 rounded hover:bg-roman-danger/20 transition-colors"
-            onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          >
-            <Trash2 className="w-3.5 h-3.5 text-roman-danger" />
-          </div>
-        </div>
+      {/* Status indicator */}
+      <div className={`w-1.5 h-1.5 rounded-full ${statusColor} shrink-0 ${obs.observable && !obs.nearConstraint ? '' : ''}`} />
+
+      {/* Name */}
+      <span className={`text-[11px] truncate ${selected ? 'text-roman-accent' : 'text-roman-text'}`}>
+        {target.name}
+      </span>
+
+      {/* RA */}
+      <span className="text-[10px] font-mono text-roman-text-dim text-right tabular-nums">
+        {formatRA(target.ra)}
+      </span>
+
+      {/* Dec */}
+      <span className="text-[10px] font-mono text-roman-text-dim text-right tabular-nums">
+        {formatDec(target.dec)}
+      </span>
+
+      {/* Remove */}
+      <div
+        className="flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={(e) => { e.stopPropagation(); onRemove(); }}
+      >
+        <X className="w-3 h-3 text-roman-text-muted hover:text-roman-danger transition-colors" />
       </div>
     </button>
   );

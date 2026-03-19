@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { Line } from '@react-three/drei';
+import { Line, Text } from '@react-three/drei';
 import { WFI_DETECTORS, DETECTOR_SIZE_ARCMIN } from '../../lib/roman';
 import { raDecToCartesian } from '../../lib/coordinates';
 
@@ -36,7 +36,29 @@ export function WFIFootprint({ targetRa, targetDec, visible }: WFIFootprintProps
       ];
 
       const center = raDecToCartesian(centerRa, centerDec, 99);
-      return { id: det.id, corners, center };
+
+      // Corner tick marks (short lines at each corner for technical schematic look)
+      const tickLen = 0.015;
+      const cornerTicks: [number, number, number][][] = [];
+      for (let c = 0; c < 4; c++) {
+        const curr = new THREE.Vector3(...corners[c]);
+        const next = new THREE.Vector3(...corners[(c + 1) % 4]);
+        const prev = new THREE.Vector3(...corners[(c + 3) % 4]);
+
+        const dirNext = next.clone().sub(curr).normalize().multiplyScalar(tickLen);
+        const dirPrev = prev.clone().sub(curr).normalize().multiplyScalar(tickLen);
+
+        cornerTicks.push([
+          curr.clone().add(dirPrev).toArray() as [number, number, number],
+          corners[c],
+          curr.clone().add(dirNext).toArray() as [number, number, number],
+        ]);
+      }
+
+      // Normal direction for label orientation
+      const normal = center.clone().normalize();
+
+      return { id: det.id, corners, center, cornerTicks, normal };
     });
   }, [targetRa, targetDec, visible]);
 
@@ -46,23 +68,51 @@ export function WFIFootprint({ targetRa, targetDec, visible }: WFIFootprintProps
     <group>
       {footprint.map((det) => (
         <group key={det.id}>
+          {/* Full detector outline — thin dashed style */}
           <Line
             points={det.corners}
             color="#06b6d4"
             transparent
-            opacity={0.7}
-            lineWidth={1.5}
+            opacity={0.3}
+            lineWidth={0.8}
           />
+
+          {/* Corner tick marks — brighter, thicker */}
+          {det.cornerTicks.map((tick, i) => (
+            <Line
+              key={i}
+              points={tick}
+              color="#06b6d4"
+              transparent
+              opacity={0.7}
+              lineWidth={1.5}
+            />
+          ))}
+
+          {/* Semi-transparent detector fill */}
           <mesh position={det.center}>
-            <planeGeometry args={[0.2, 0.2]} />
+            <planeGeometry args={[0.18, 0.18]} />
             <meshBasicMaterial
               color="#06b6d4"
               transparent
-              opacity={0.05}
+              opacity={0.02}
               side={THREE.DoubleSide}
               depthWrite={false}
             />
           </mesh>
+
+          {/* Detector ID label */}
+          <Text
+            position={det.center.clone().multiplyScalar(1.001)}
+            fontSize={0.04}
+            color="#06b6d4"
+            anchorX="center"
+            anchorY="middle"
+            fillOpacity={0.4}
+            font={undefined}
+          >
+            {det.id}
+          </Text>
         </group>
       ))}
     </group>
