@@ -28,12 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Hovering or clicking a detector identifies it by SCA name and shows its approximate sky coverage in RA/Dec
   3. Rotating the position angle visually rotates the entire footprint around the boresight with the correct V3PA East-of-North convention
   4. Focal plane view projects sky coordinates onto detector pixels using gnomonic (TAN) projection that matches the real 0.11"/px plate scale
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — SIAF data foundation, WCS engine, and test infrastructure
+- [ ] 01-02-PLAN.md — Rewire WFIFootprint and FocalPlaneView to use SIAF+WCS
+- [ ] 01-03-PLAN.md — Visual verification of footprint accuracy
 
 ### Phase 2: Live Sky Data
 **Goal**: Users see real Gaia stars at their target pointing and can resolve target names, turning the tool from a geometry visualizer into a sky-aware planner
