@@ -3,31 +3,22 @@ import { WFI_DETECTORS, WFI_BORESIGHT } from '../../lib/roman';
 import { positionAngle } from '../../lib/coordinates';
 import { skyToFocalPlane, rotateByPA } from '../../lib/wcs';
 import { FPA_ROTATION_DEG } from '../../lib/siaf';
-import { getRawStars } from '../../lib/catalog';
+import type { GaiaSource } from '../../lib/vizier';
+import type { QueryStatus } from '../../hooks/useGaiaStars';
 import type { SunPosition } from '../../lib/constraints';
 
 interface FocalPlaneViewProps {
   targetRa: number;
   targetDec: number;
   sunPosition: SunPosition;
+  gaiaStars: GaiaSource[];
+  gaiaStatus: QueryStatus;
 }
 
 interface FocalPlaneStar {
   x: number; // arcmin in focal plane (V2 direction)
   y: number; // arcmin in focal plane (V3 direction, SVG-inverted)
   mag: number;
-  ci: number;
-}
-
-/**
- * Map color index to a CSS color string.
- */
-function ciToColor(ci: number): string {
-  if (ci < 0) return '#aaccff';
-  if (ci < 0.3) return '#ddeeff';
-  if (ci < 0.6) return '#ffffee';
-  if (ci < 1.0) return '#ffddaa';
-  return '#ffbb77';
 }
 
 /**
@@ -64,7 +55,7 @@ function computeViewBounds() {
 
 const VIEW_BOUNDS = computeViewBounds();
 
-export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneViewProps) {
+export function FocalPlaneView({ targetRa, targetDec, sunPosition, gaiaStars, gaiaStatus }: FocalPlaneViewProps) {
   const v3pa = useMemo(
     () => positionAngle(targetRa, targetDec, sunPosition.ra, sunPosition.dec),
     [targetRa, targetDec, sunPosition.ra, sunPosition.dec]
@@ -95,25 +86,12 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
     });
   }, []);
 
-  // Project catalog stars onto focal plane using wcs.ts
+  // Project Gaia stars onto focal plane using wcs.ts
   const stars = useMemo<FocalPlaneStar[]>(() => {
-    const raw = getRawStars();
     const result: FocalPlaneStar[] = [];
 
-    // Pre-filter search radius with cos(dec) correction (fixes high-declination bug)
-    const searchRadius = 1.0; // degrees
-    const cosDec = Math.cos(targetDec * Math.PI / 180);
-    const dRaThreshold = cosDec > 0.01 ? searchRadius / cosDec : 360;
-
-    for (const [ra, dec, mag, ci] of raw) {
-      // Quick angular distance pre-filter
-      const dRa = Math.abs(ra - targetRa);
-      const dDec = Math.abs(dec - targetDec);
-      if (dRa > dRaThreshold && dRa < (360 - dRaThreshold)) continue;
-      if (dDec > searchRadius) continue;
-      if (mag > 10) continue; // only brighter stars visible
-
-      const fp = skyToFocalPlane(ra, dec, targetRa, targetDec, v3pa);
+    for (const star of gaiaStars) {
+      const fp = skyToFocalPlane(star.ra, star.dec, targetRa, targetDec, v3pa);
       if (!fp) continue;
 
       // skyToFocalPlane returns {x, y} in arcminutes where:
@@ -125,11 +103,11 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
       // Check within padded FOV bounds
       if (Math.abs(starX) > halfW || Math.abs(starY) > halfH) continue;
 
-      result.push({ x: starX, y: starY, mag, ci });
+      result.push({ x: starX, y: starY, mag: star.mag });
     }
 
     return result;
-  }, [targetRa, targetDec, v3pa, halfW, halfH]);
+  }, [gaiaStars, targetRa, targetDec, v3pa, halfW, halfH]);
 
   // N/E compass: rotate sky North/East vectors into focal plane frame
   // In the focal plane (V2V3 frame), sky North is rotated by -V3PA from the +eta direction.
@@ -188,18 +166,18 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
             </g>
           ))}
 
-          {/* Projected stars */}
+          {/* Projected Gaia stars */}
           {stars.map((star, i) => {
-            // Size: brighter = larger. mag 0 -> r=0.6, mag 8 -> r=0.1
-            const r = Math.max(0.08, 0.7 - star.mag * 0.08);
+            // Size: brighter = larger. Gaia mags range ~8-21
+            const r = Math.max(0.08, 0.5 - (star.mag - 8) * 0.04);
             return (
               <circle
                 key={i}
                 cx={star.x}
                 cy={star.y}
                 r={r}
-                fill={ciToColor(star.ci)}
-                opacity={Math.max(0.3, 1.0 - star.mag * 0.1)}
+                fill="#88bbff"
+                opacity={Math.max(0.2, 1.0 - (star.mag - 8) * 0.07)}
               />
             );
           })}
@@ -252,10 +230,24 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
           </g>
         </svg>
 
-        {/* Star count and FOV info */}
+        {/* Star count / density indicator and FOV info */}
         <div className="flex items-center justify-between mt-1">
           <span className="text-[8px] font-mono text-roman-text-muted">
-            {stars.length} sources (V&lt;10)
+            {gaiaStatus.state === 'loading' && (
+              <span className="animate-pulse">Querying...</span>
+            )}
+            {gaiaStatus.state === 'loaded' && (
+              <>
+                {gaiaStatus.count} sources (G &lt; {gaiaStatus.magLimit?.toFixed(1)})
+                {gaiaStatus.isDense && (
+                  <span className="text-roman-warning ml-1">[DENSE]</span>
+                )}
+              </>
+            )}
+            {gaiaStatus.state === 'error' && (
+              <span className="text-roman-danger">Query failed</span>
+            )}
+            {gaiaStatus.state === 'idle' && 'No target selected'}
           </span>
           <span className="text-[8px] font-mono text-roman-text-muted">
             {(vbW / 1.15).toFixed(0)}&apos; x {(vbH / 1.15).toFixed(0)}&apos;

@@ -3,6 +3,7 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { StarField } from './StarField';
+import { GaiaStarLayer } from './GaiaStarLayer';
 import { WFIFootprint } from './WFIFootprint';
 import { ExclusionZones } from './ExclusionZones';
 import { FieldOfRegard } from './FieldOfRegard';
@@ -11,6 +12,7 @@ import { CoordinateGrid } from './CoordinateGrid';
 import { GalacticPlane } from './GalacticPlane';
 import type { SunPosition } from '../../lib/constraints';
 import type { Target } from '../../hooks/useTargets';
+import type { GaiaSource } from '../../lib/vizier';
 
 interface CelestialSceneProps {
   sunPosition: SunPosition;
@@ -18,6 +20,7 @@ interface CelestialSceneProps {
   showGrid: boolean;
   showConstraints: boolean;
   showGalactic: boolean;
+  gaiaStars: GaiaSource[];
 }
 
 function CameraController({ target }: { target: Target | null }) {
@@ -48,6 +51,7 @@ export function CelestialScene({
   showGrid,
   showConstraints,
   showGalactic,
+  gaiaStars,
 }: CelestialSceneProps) {
   return (
     <Canvas
@@ -60,6 +64,7 @@ export function CelestialScene({
       <ambientLight intensity={0.1} />
 
       <StarField />
+      <GaiaStarLayer stars={gaiaStars} visible={selectedTarget !== null} />
       <CoordinateGrid visible={showGrid} />
       <GalacticPlane visible={showGalactic} />
 

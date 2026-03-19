@@ -11,10 +11,12 @@ import { CoordinateDisplay } from './components/ui/CoordinateDisplay';
 import { FocalPlaneView } from './components/ui/FocalPlaneView';
 import { useTargets } from './hooks/useTargets';
 import { useEphemeris } from './hooks/useEphemeris';
+import { useGaiaStars } from './hooks/useGaiaStars';
 
 function App() {
   const { targets, selectedTarget, selectedTargetId, addTarget, removeTarget, selectTarget } = useTargets();
   const { epoch, setEpoch, sunPosition } = useEphemeris();
+  const { stars: gaiaStars, status: gaiaStatus } = useGaiaStars(selectedTarget?.ra, selectedTarget?.dec);
 
   const [showGrid, setShowGrid] = useState(true);
   const [showConstraints, setShowConstraints] = useState(true);
@@ -46,6 +48,7 @@ function App() {
           showGrid={showGrid}
           showConstraints={showConstraints}
           showGalactic={showGalactic}
+          gaiaStars={gaiaStars}
         />
       }
       focalPlaneView={
@@ -54,6 +57,8 @@ function App() {
             targetRa={selectedTarget.ra}
             targetDec={selectedTarget.dec}
             sunPosition={sunPosition}
+            gaiaStars={gaiaStars}
+            gaiaStatus={gaiaStatus}
           />
         ) : undefined
       }
