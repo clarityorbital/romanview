@@ -63,31 +63,52 @@ describe('SIAF detector data', () => {
   });
 
   describe('no overlapping detectors', () => {
-    it('no two detector bounding boxes in V2V3 space overlap', () => {
+    it('no two detector polygons in V2V3 space overlap (SAT check)', () => {
       const detectors = getAllDetectors();
 
-      // Compute bounding box for each detector from corners
-      const boxes = detectors.map((det) => {
-        const v2s = det.corners_v2v3.map((c) => c[0]);
-        const v3s = det.corners_v2v3.map((c) => c[1]);
-        return {
-          id: det.id,
-          minV2: Math.min(...v2s),
-          maxV2: Math.max(...v2s),
-          minV3: Math.min(...v3s),
-          maxV3: Math.max(...v3s),
-        };
-      });
+      // Use Separating Axis Theorem for convex polygon overlap detection.
+      // The detectors are rotated ~60 degrees so axis-aligned bounding boxes
+      // will falsely report overlaps. SAT tests along all edge-normal axes.
+      function getAxes(corners: [number, number][]): [number, number][] {
+        const axes: [number, number][] = [];
+        for (let i = 0; i < corners.length; i++) {
+          const j = (i + 1) % corners.length;
+          const edgeX = corners[j][0] - corners[i][0];
+          const edgeY = corners[j][1] - corners[i][1];
+          // Normal to edge (perpendicular)
+          const len = Math.sqrt(edgeX * edgeX + edgeY * edgeY);
+          axes.push([-edgeY / len, edgeX / len]);
+        }
+        return axes;
+      }
 
-      // Check each pair for overlap
-      for (let i = 0; i < boxes.length; i++) {
-        for (let j = i + 1; j < boxes.length; j++) {
-          const a = boxes[i];
-          const b = boxes[j];
-          const overlapsV2 = a.minV2 < b.maxV2 && a.maxV2 > b.minV2;
-          const overlapsV3 = a.minV3 < b.maxV3 && a.maxV3 > b.minV3;
+      function project(corners: [number, number][], axis: [number, number]): [number, number] {
+        let min = Infinity;
+        let max = -Infinity;
+        for (const c of corners) {
+          const dot = c[0] * axis[0] + c[1] * axis[1];
+          if (dot < min) min = dot;
+          if (dot > max) max = dot;
+        }
+        return [min, max];
+      }
+
+      function polygonsOverlap(a: [number, number][], b: [number, number][]): boolean {
+        const axes = [...getAxes(a), ...getAxes(b)];
+        for (const axis of axes) {
+          const [minA, maxA] = project(a, axis);
+          const [minB, maxB] = project(b, axis);
+          if (maxA <= minB || maxB <= minA) return false; // separating axis found
+        }
+        return true; // no separating axis = overlap
+      }
+
+      for (let i = 0; i < detectors.length; i++) {
+        for (let j = i + 1; j < detectors.length; j++) {
+          const a = detectors[i];
+          const b = detectors[j];
           expect(
-            overlapsV2 && overlapsV3,
+            polygonsOverlap(a.corners_v2v3 as [number, number][], b.corners_v2v3 as [number, number][]),
             `Detectors ${a.id} and ${b.id} overlap in V2V3 space`
           ).toBe(false);
         }
