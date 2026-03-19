@@ -24,7 +24,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **STAR-01**: User sees real Gaia DR3 stars at the target pointing via VizieR TAP cone search (~0.5° radius, magnitude-limited)
 - [x] **STAR-02**: Star query adapts to field density — tighter magnitude cut in galactic plane, deeper in sparse fields — to keep rendering performant (<2000 stars)
-- [ ] **STAR-03**: Star density indicator shows source count and effective magnitude limit for the current field
+- [x] **STAR-03**: Star density indicator shows source count and effective magnitude limit for the current field
 
 ### Planning Workflow
 
@@ -86,7 +86,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TARG-03 | Phase 2 | Complete |
 | STAR-01 | Phase 2 | Complete |
 | STAR-02 | Phase 2 | Complete |
-| STAR-03 | Phase 2 | Pending |
+| STAR-03 | Phase 2 | Complete |
 | PLAN-01 | Phase 3 | Pending |
 | PLAN-02 | Phase 3 | Pending |
 | PLAN-03 | Phase 3 | Pending |
