@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
-import { WFI_DETECTORS, DETECTOR_SIZE_ARCMIN, TOTAL_FOV_ARCMIN } from '../../lib/roman';
+import { WFI_DETECTORS, WFI_BORESIGHT } from '../../lib/roman';
 import { positionAngle } from '../../lib/coordinates';
+import { skyToFocalPlane, rotateByPA } from '../../lib/wcs';
+import { FPA_ROTATION_DEG } from '../../lib/siaf';
 import { getRawStars } from '../../lib/catalog';
 import type { SunPosition } from '../../lib/constraints';
 
@@ -11,61 +13,16 @@ interface FocalPlaneViewProps {
 }
 
 interface FocalPlaneStar {
-  x: number; // arcmin in focal plane
-  y: number;
+  x: number; // arcmin in focal plane (V2 direction)
+  y: number; // arcmin in focal plane (V3 direction, SVG-inverted)
   mag: number;
   ci: number;
-}
-
-/**
- * Project sky coordinates onto the WFI focal plane.
- * Returns (x, y) in arcminutes from boresight, rotated by PA.
- */
-function projectToFocalPlane(
-  starRa: number, starDec: number,
-  boresightRa: number, boresightDec: number,
-  paDeg: number
-): [number, number] | null {
-  const toRad = Math.PI / 180;
-  const ra = starRa * toRad;
-  const dec = starDec * toRad;
-  const ra0 = boresightRa * toRad;
-  const dec0 = boresightDec * toRad;
-
-  const cosDec = Math.cos(dec);
-  const sinDec = Math.sin(dec);
-  const cosDec0 = Math.cos(dec0);
-  const sinDec0 = Math.sin(dec0);
-  const dRa = ra - ra0;
-  const cosDRa = Math.cos(dRa);
-
-  // Gnomonic (tangent-plane) projection
-  const cosC = sinDec0 * sinDec + cosDec0 * cosDec * cosDRa;
-  if (cosC <= 0) return null; // behind the tangent point
-
-  const xi = (cosDec * Math.sin(dRa)) / cosC;   // radians, east direction
-  const eta = (cosDec0 * sinDec - sinDec0 * cosDec * cosDRa) / cosC; // radians, north direction
-
-  // Convert to arcmin
-  const xArcmin = (xi / toRad) * 60;
-  const yArcmin = (eta / toRad) * 60;
-
-  // Rotate by -PA to go from sky coords to focal plane coords
-  // (PA rotates focal plane relative to sky, so we undo it)
-  const pa = paDeg * toRad;
-  const cosPA = Math.cos(pa);
-  const sinPA = Math.sin(pa);
-  const fpX = xArcmin * cosPA + yArcmin * sinPA;
-  const fpY = -xArcmin * sinPA + yArcmin * cosPA;
-
-  return [fpX, fpY];
 }
 
 /**
  * Map color index to a CSS color string.
  */
 function ciToColor(ci: number): string {
-  // Simplified: blue stars (ci < 0) → blue, white (0-0.5) → white, yellow (0.5-1.2) → warm, red (>1.2) → orange
   if (ci < 0) return '#aaccff';
   if (ci < 0.3) return '#ddeeff';
   if (ci < 0.6) return '#ffffee';
@@ -73,50 +30,119 @@ function ciToColor(ci: number): string {
   return '#ffbb77';
 }
 
+/**
+ * Compute SVG viewBox bounds from SIAF detector corners.
+ * Returns bounds in arcminutes relative to boresight, with padding.
+ */
+function computeViewBounds() {
+  const allCorners = WFI_DETECTORS.flatMap(d =>
+    d.corners_v2v3.map(([v2, v3]) => ({
+      x: (v2 - WFI_BORESIGHT.v2) / 60,  // arcmin, V2 direction
+      y: -(v3 - WFI_BORESIGHT.v3) / 60,  // arcmin, SVG Y inverted from V3
+    }))
+  );
+  const padFactor = 1.15;
+  const minX = Math.min(...allCorners.map(c => c.x));
+  const maxX = Math.max(...allCorners.map(c => c.x));
+  const minY = Math.min(...allCorners.map(c => c.y));
+  const maxY = Math.max(...allCorners.map(c => c.y));
+
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const halfW = ((maxX - minX) / 2) * padFactor;
+  const halfH = ((maxY - minY) / 2) * padFactor;
+
+  return {
+    vbX: cx - halfW,
+    vbY: cy - halfH,
+    vbW: halfW * 2,
+    vbH: halfH * 2,
+    halfW,
+    halfH,
+  };
+}
+
+const VIEW_BOUNDS = computeViewBounds();
+
 export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneViewProps) {
-  const pa = useMemo(
+  const v3pa = useMemo(
     () => positionAngle(targetRa, targetDec, sunPosition.ra, sunPosition.dec),
     [targetRa, targetDec, sunPosition.ra, sunPosition.dec]
   );
 
-  // Half-extents of the full FOV in arcmin (with some padding)
-  const padFactor = 1.15;
-  const halfW = (TOTAL_FOV_ARCMIN.width / 2) * padFactor;
-  const halfH = (TOTAL_FOV_ARCMIN.height / 2) * padFactor;
+  // Aperture PA = V3PA - V3IdlYAngle = V3PA - (-60) = V3PA + 60
+  const apa = v3pa - FPA_ROTATION_DEG; // V3PA + 60
 
-  // SVG viewBox: focal plane in arcmin, origin at boresight
-  const vbX = -halfW;
-  const vbY = -halfH;
-  const vbW = halfW * 2;
-  const vbH = halfH * 2;
+  const { vbX, vbY, vbW, vbH, halfW, halfH } = VIEW_BOUNDS;
 
-  const halfDet = DETECTOR_SIZE_ARCMIN / 2;
+  // Detector polygons in V2V3 space (static in instrument frame)
+  const detectorPolygons = useMemo(() => {
+    return WFI_DETECTORS.map(det => {
+      // Corner positions relative to boresight, in arcminutes
+      const corners = det.corners_v2v3.map(([v2, v3]) => ({
+        x: (v2 - WFI_BORESIGHT.v2) / 60,
+        y: -(v3 - WFI_BORESIGHT.v3) / 60, // SVG Y is inverted from V3
+      }));
 
-  // Project catalog stars onto focal plane
+      // Detector center relative to boresight
+      const cx = (det.v2Ref - WFI_BORESIGHT.v2) / 60;
+      const cy = -(det.v3Ref - WFI_BORESIGHT.v3) / 60;
+
+      // Build SVG polygon points string
+      const pointsStr = corners.map(c => `${c.x},${c.y}`).join(' ');
+
+      return { id: det.id, corners, cx, cy, pointsStr };
+    });
+  }, []);
+
+  // Project catalog stars onto focal plane using wcs.ts
   const stars = useMemo<FocalPlaneStar[]>(() => {
     const raw = getRawStars();
     const result: FocalPlaneStar[] = [];
 
+    // Pre-filter search radius with cos(dec) correction (fixes high-declination bug)
+    const searchRadius = 1.0; // degrees
+    const cosDec = Math.cos(targetDec * Math.PI / 180);
+    const dRaThreshold = cosDec > 0.01 ? searchRadius / cosDec : 360;
+
     for (const [ra, dec, mag, ci] of raw) {
-      // Quick angular distance pre-filter (half-degree ~ 30 arcmin)
+      // Quick angular distance pre-filter
       const dRa = Math.abs(ra - targetRa);
       const dDec = Math.abs(dec - targetDec);
-      if (dRa > 1 && dRa < 359) continue;
-      if (dDec > 1) continue;
+      if (dRa > dRaThreshold && dRa < (360 - dRaThreshold)) continue;
+      if (dDec > searchRadius) continue;
       if (mag > 10) continue; // only brighter stars visible
 
-      const fp = projectToFocalPlane(ra, dec, targetRa, targetDec, pa);
+      const fp = skyToFocalPlane(ra, dec, targetRa, targetDec, v3pa);
       if (!fp) continue;
-      const [x, y] = fp;
+
+      // skyToFocalPlane returns {x, y} in arcminutes where:
+      //   x = xi direction (= -V2 direction), y = eta direction (= V3 direction)
+      // To match detector V2V3 coordinates: starX = -fp.x (flip to V2), starY = -fp.y (SVG invert V3)
+      const starX = -fp.x;
+      const starY = -fp.y;
 
       // Check within padded FOV bounds
-      if (Math.abs(x) > halfW || Math.abs(y) > halfH) continue;
+      if (Math.abs(starX) > halfW || Math.abs(starY) > halfH) continue;
 
-      result.push({ x, y, mag, ci });
+      result.push({ x: starX, y: starY, mag, ci });
     }
 
     return result;
-  }, [targetRa, targetDec, pa, halfW, halfH]);
+  }, [targetRa, targetDec, v3pa, halfW, halfH]);
+
+  // N/E compass: rotate sky North/East vectors into focal plane frame
+  // In the focal plane (V2V3 frame), sky North is rotated by -V3PA from the +eta direction.
+  // Using rotateByPA with -V3PA: North in sky = (xi=0, eta=1) -> focal plane
+  const northFP = rotateByPA(0, 1, -v3pa);
+  const eastFP = rotateByPA(1, 0, -v3pa);
+  // Convert to SVG coords: x maps to V2 (flip xi sign), y maps to -V3 (flip eta sign)
+  const compassLen = 2;
+  const labelDist = 2.8;
+  const northX = -northFP.xi * compassLen;
+  const northY = -northFP.eta * compassLen;
+  const eastX = -eastFP.xi * compassLen;
+  const eastY = -eastFP.eta * compassLen;
 
   return (
     <div className="absolute top-11 left-2 z-10 pointer-events-none">
@@ -125,7 +151,7 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
         <div className="flex items-center justify-between mb-1.5">
           <span className="hud-label">Focal Plane</span>
           <span className="text-[8px] font-mono text-roman-text-muted">
-            PA {pa.toFixed(1)}°
+            PA {apa.toFixed(1)}&deg;
           </span>
         </div>
 
@@ -139,41 +165,38 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
           <line x1={0} y1={vbY} x2={0} y2={vbY + vbH} stroke="rgba(255,255,255,0.04)" strokeWidth={0.15} />
           <line x1={vbX} y1={0} x2={vbX + vbW} y2={0} stroke="rgba(255,255,255,0.04)" strokeWidth={0.15} />
 
-          {/* Detector rectangles */}
-          {WFI_DETECTORS.map((det) => (
+          {/* Detector polygons from SIAF V2V3 corners */}
+          {detectorPolygons.map((det) => (
             <g key={det.id}>
-              <rect
-                x={det.centerX - halfDet}
-                y={-(det.centerY + halfDet)} // SVG y is inverted
-                width={DETECTOR_SIZE_ARCMIN}
-                height={DETECTOR_SIZE_ARCMIN}
+              <polygon
+                points={det.pointsStr}
                 fill="rgba(6,182,212,0.04)"
                 stroke="rgba(6,182,212,0.25)"
                 strokeWidth={0.12}
               />
               <text
-                x={det.centerX}
-                y={-det.centerY}
+                x={det.cx}
+                y={det.cy}
                 textAnchor="middle"
                 dominantBaseline="central"
                 fill="rgba(6,182,212,0.2)"
                 fontSize={1.8}
                 fontFamily="'JetBrains Mono', monospace"
               >
-                {det.id.replace('SCA', '')}
+                {det.id.replace('WFI', '')}
               </text>
             </g>
           ))}
 
           {/* Projected stars */}
           {stars.map((star, i) => {
-            // Size: brighter = larger. mag 0 → r=0.6, mag 8 → r=0.1
+            // Size: brighter = larger. mag 0 -> r=0.6, mag 8 -> r=0.1
             const r = Math.max(0.08, 0.7 - star.mag * 0.08);
             return (
               <circle
                 key={i}
                 cx={star.x}
-                cy={-star.y} // SVG y is inverted
+                cy={star.y}
                 r={r}
                 fill={ciToColor(star.ci)}
                 opacity={Math.max(0.3, 1.0 - star.mag * 0.1)}
@@ -188,17 +211,17 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
 
           {/* N/E compass */}
           <g transform={`translate(${vbX + 2.5}, ${vbY + 2.5})`}>
-            {/* North arrow (up in sky, rotated by PA in focal plane) */}
+            {/* North arrow */}
             <line
               x1={0} y1={0}
-              x2={-2 * Math.sin(pa * Math.PI / 180)}
-              y2={-2 * Math.cos(pa * Math.PI / 180)}
+              x2={northX}
+              y2={northY}
               stroke="rgba(255,255,255,0.3)"
               strokeWidth={0.1}
             />
             <text
-              x={-2.8 * Math.sin(pa * Math.PI / 180)}
-              y={-2.8 * Math.cos(pa * Math.PI / 180)}
+              x={northX * (labelDist / compassLen)}
+              y={northY * (labelDist / compassLen)}
               textAnchor="middle"
               dominantBaseline="central"
               fill="rgba(255,255,255,0.4)"
@@ -210,14 +233,14 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
             {/* East arrow */}
             <line
               x1={0} y1={0}
-              x2={2 * Math.cos(pa * Math.PI / 180)}
-              y2={-2 * Math.sin(pa * Math.PI / 180)}
+              x2={eastX}
+              y2={eastY}
               stroke="rgba(255,255,255,0.2)"
               strokeWidth={0.1}
             />
             <text
-              x={2.8 * Math.cos(pa * Math.PI / 180)}
-              y={-2.8 * Math.sin(pa * Math.PI / 180)}
+              x={eastX * (labelDist / compassLen)}
+              y={eastY * (labelDist / compassLen)}
               textAnchor="middle"
               dominantBaseline="central"
               fill="rgba(255,255,255,0.25)"
@@ -229,13 +252,13 @@ export function FocalPlaneView({ targetRa, targetDec, sunPosition }: FocalPlaneV
           </g>
         </svg>
 
-        {/* Star count */}
+        {/* Star count and FOV info */}
         <div className="flex items-center justify-between mt-1">
           <span className="text-[8px] font-mono text-roman-text-muted">
             {stars.length} sources (V&lt;10)
           </span>
           <span className="text-[8px] font-mono text-roman-text-muted">
-            {TOTAL_FOV_ARCMIN.width.toFixed(0)}' x {TOTAL_FOV_ARCMIN.height.toFixed(0)}'
+            {(vbW / 1.15).toFixed(0)}&apos; x {(vbH / 1.15).toFixed(0)}&apos;
           </span>
         </div>
       </div>
