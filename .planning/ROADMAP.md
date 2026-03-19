@@ -60,11 +60,12 @@ Plans:
   1. User can drag a PA slider that shows the Sun-constrained roll range for the current target and date, and the footprint rotates in real-time as the slider moves
   2. User can copy the current URL (which encodes target, PA, date) and send it to a collaborator who sees the identical view when they open it
   3. User can click "Export DS9 Regions" and download a .reg file with FK5 polygon regions for all 18 SCAs that loads correctly in SAOImage DS9
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Core library modules (roll range, URL state, DS9 export) with TDD
+- [ ] 03-02-PLAN.md — UI components (PA slider, share button, export button) and App wiring
+- [ ] 03-03-PLAN.md — Visual verification of all Phase 3 requirements
 
 ### Phase 4: Advanced Features
 **Goal**: Users get additional planning capabilities that differentiate RomanView from simpler footprint viewers -- dither visualization, bright star hazard warnings, and ecliptic context
@@ -89,5 +90,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. SIAF Geometry and WCS Engine | 3/3 | Complete | 2026-03-19 |
 | 2. Live Sky Data | 3/3 | Complete   | 2026-03-19 |
-| 3. Planning Workflow | 0/2 | Not started | - |
+| 3. Planning Workflow | 0/3 | Not started | - |
 | 4. Advanced Features | 0/2 | Not started | - |
