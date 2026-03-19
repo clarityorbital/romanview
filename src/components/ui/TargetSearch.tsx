@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { sesameResolve, type SimbadResult } from '../../lib/simbad';
+import { parseCoords } from '../../lib/parseCoords';
 import { Search, Plus, Loader2 } from 'lucide-react';
 
 interface TargetSearchProps {
@@ -12,8 +13,7 @@ export function TargetSearch({ onAddTarget }: TargetSearchProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manualMode, setManualMode] = useState(false);
-  const [manualRa, setManualRa] = useState('');
-  const [manualDec, setManualDec] = useState('');
+  const [manualCoords, setManualCoords] = useState('');
   const [manualName, setManualName] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -54,13 +54,15 @@ export function TargetSearch({ onAddTarget }: TargetSearchProps) {
   }, [query, search]);
 
   const handleAddManual = () => {
-    const ra = parseFloat(manualRa);
-    const dec = parseFloat(manualDec);
-    if (isNaN(ra) || isNaN(dec)) return;
-    const name = manualName.trim() || `Custom (${ra.toFixed(2)}, ${dec.toFixed(2)})`;
-    onAddTarget(name, ra, dec);
-    setManualRa('');
-    setManualDec('');
+    const parsed = parseCoords(manualCoords);
+    if (!parsed) {
+      setError('Invalid coordinates');
+      return;
+    }
+    setError(null);
+    const name = manualName.trim() || `Custom (${parsed.ra.toFixed(2)}, ${parsed.dec.toFixed(2)})`;
+    onAddTarget(name, parsed.ra, parsed.dec);
+    setManualCoords('');
     setManualName('');
   };
 
@@ -127,31 +129,20 @@ export function TargetSearch({ onAddTarget }: TargetSearchProps) {
             placeholder="Designation (optional)"
             className="hud-input font-mono text-[11px]"
           />
-          <div className="grid grid-cols-2 gap-1.5">
-            <div>
-              <label className="text-[8px] font-mono text-roman-text-muted tracking-wider mb-0.5 block">RA (deg)</label>
-              <input
-                type="number"
-                value={manualRa}
-                onChange={(e) => setManualRa(e.target.value)}
-                placeholder="0.000"
-                className="hud-input font-mono text-[11px]"
-              />
-            </div>
-            <div>
-              <label className="text-[8px] font-mono text-roman-text-muted tracking-wider mb-0.5 block">DEC (deg)</label>
-              <input
-                type="number"
-                value={manualDec}
-                onChange={(e) => setManualDec(e.target.value)}
-                placeholder="0.000"
-                className="hud-input font-mono text-[11px]"
-              />
-            </div>
+          <div>
+            <label className="text-[8px] font-mono text-roman-text-muted tracking-wider mb-0.5 block">COORDS</label>
+            <input
+              type="text"
+              value={manualCoords}
+              onChange={(e) => { setManualCoords(e.target.value); setError(null); }}
+              placeholder="00h42m44s +41d16m09s or 10.685 +41.269"
+              className="hud-input font-mono text-[11px]"
+            />
           </div>
+          {error && <p className="text-[10px] font-mono text-roman-danger/70">{error}</p>}
           <button
             onClick={handleAddManual}
-            disabled={!manualRa || !manualDec}
+            disabled={!manualCoords.trim()}
             className="w-full py-1.5 bg-roman-accent/10 border border-roman-accent/25 rounded-sm text-[10px] font-mono tracking-wider text-roman-accent hover:bg-roman-accent/20 transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             + ADD TARGET

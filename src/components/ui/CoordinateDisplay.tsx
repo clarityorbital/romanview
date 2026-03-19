@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { formatRA, formatDec, positionAngle } from '../../lib/coordinates';
+import { formatRA, formatDec, formatRaDeg, formatDecDeg, positionAngle } from '../../lib/coordinates';
 import type { SunPosition } from '../../lib/constraints';
 
 interface CoordinateDisplayProps {
@@ -46,6 +46,14 @@ export function CoordinateDisplay({ sunPosition, epoch, selectedRa, selectedDec 
                 <div>
                   <span className="text-roman-text-muted mr-1">DEC</span>
                   <span className="text-roman-accent">{formatDec(selectedDec)}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 text-[9px] font-mono mt-0.5">
+                <div>
+                  <span className="text-roman-text-dim">RA {formatRaDeg(selectedRa)}deg</span>
+                </div>
+                <div>
+                  <span className="text-roman-text-dim">DEC {formatDecDeg(selectedDec)}deg</span>
                 </div>
               </div>
             </div>
