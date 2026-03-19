@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-03-19T20:12:55.731Z"
-last_activity: 2026-03-19 — Completed 01-01-PLAN.md (SIAF data + WCS engine)
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-03-19T20:19:28.313Z"
+last_activity: 2026-03-19 — Completed 01-02-PLAN.md (component rewiring to SIAF/WCS)
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 ## Current Position
 
 Phase: 1 of 4 (SIAF Geometry and WCS Engine)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-19 — Completed 01-01-PLAN.md (SIAF data + WCS engine)
+Last activity: 2026-03-19 — Completed 01-02-PLAN.md (component rewiring to SIAF/WCS)
 
-Progress: [███░░░░░░░] 33%
+Progress: [██████░░░░] 67%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [███░░░░░░░] 33%
 
 *Updated after each plan completion*
 | Phase 01 P01 | 4min | 3 tasks | 8 files |
+| Phase 01 P02 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Recent decisions affecting current work:
 - [Research]: Current detector geometry has ~60-degree orientation error -- SIAF extraction is critical path
 - [Phase 01]: Used real pysiaf v0.25.0 data for SIAF extraction; boresight at V2=1546.38 V3=-892.79 arcsec
 - [Phase 01]: SAT polygon overlap check for rotated detectors instead of AABB
+- [Phase 01-02]: Kept TOTAL_FOV_ARCMIN/DEG exports from roman.ts (computed from SIAF corners) for InstrumentPanel compatibility
+- [Phase 01-02]: APA = V3PA - FPA_ROTATION_DEG (= V3PA + 60) is the displayed aperture PA
+- [Phase 01-02]: Star skyToFocalPlane coordinates need sign negation to match V2V3 SVG convention
 
 ### Pending Todos
 
@@ -77,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T20:12:55.729Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-03-19T20:17:49Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
