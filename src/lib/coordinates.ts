@@ -109,6 +109,17 @@ export function positionAngle(
   return pa / toRad; // degrees
 }
 
+/** Format RA as decimal degrees string with 4 decimal places */
+export function formatRaDeg(raDeg: number): string {
+  return raDeg.toFixed(4);
+}
+
+/** Format Dec as signed decimal degrees string with 4 decimal places */
+export function formatDecDeg(decDeg: number): string {
+  const sign = decDeg >= 0 ? '+' : '';
+  return `${sign}${decDeg.toFixed(4)}`;
+}
+
 /** Color index (B-V) to RGB color for star rendering */
 export function colorIndexToColor(ci: number): THREE.Color {
   // Attempt to map B-V color index to approximate RGB
