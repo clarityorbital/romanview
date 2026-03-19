@@ -2,6 +2,11 @@ import starsRaw from '../data/hyg_bright.json';
 import { colorIndexToColor, raDecToCartesian } from './coordinates';
 import * as THREE from 'three';
 
+/** Raw catalog: each entry is [ra_deg, dec_deg, magnitude, color_index] */
+export function getRawStars(): number[][] {
+  return starsRaw as number[][];
+}
+
 export interface StarData {
   positions: Float32Array;
   colors: Float32Array;

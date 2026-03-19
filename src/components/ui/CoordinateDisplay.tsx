@@ -1,4 +1,5 @@
-import { formatRA, formatDec } from '../../lib/coordinates';
+import { useMemo } from 'react';
+import { formatRA, formatDec, positionAngle } from '../../lib/coordinates';
 import type { SunPosition } from '../../lib/constraints';
 
 interface CoordinateDisplayProps {
@@ -9,6 +10,11 @@ interface CoordinateDisplayProps {
 }
 
 export function CoordinateDisplay({ sunPosition, epoch, selectedRa, selectedDec }: CoordinateDisplayProps) {
+  const pa = useMemo(() => {
+    if (selectedRa === undefined || selectedDec === undefined) return null;
+    return positionAngle(selectedRa, selectedDec, sunPosition.ra, sunPosition.dec);
+  }, [selectedRa, selectedDec, sunPosition.ra, sunPosition.dec]);
+
   return (
     <div className="absolute bottom-16 left-2 z-10 pointer-events-none">
       <div className="hud-panel relative rounded-sm px-3 py-2">
@@ -41,6 +47,18 @@ export function CoordinateDisplay({ sunPosition, epoch, selectedRa, selectedDec 
                   <span className="text-roman-text-muted mr-1">DEC</span>
                   <span className="text-roman-accent">{formatDec(selectedDec)}</span>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Position Angle */}
+          {pa !== null && (
+            <div>
+              <div className="text-[7px] font-mono text-roman-text-muted tracking-[0.15em] mb-0.5">ORIENTATION</div>
+              <div className="text-[10px] font-mono">
+                <span className="text-roman-text-muted mr-1">PA</span>
+                <span className="text-roman-accent">{pa.toFixed(1)}°</span>
+                <span className="text-roman-text-muted ml-2 text-[9px]">V3 → Sun</span>
               </div>
             </div>
           )}

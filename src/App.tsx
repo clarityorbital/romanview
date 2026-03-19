@@ -8,6 +8,7 @@ import { EpochSlider } from './components/ui/EpochSlider';
 import { InstrumentPanel } from './components/ui/InstrumentPanel';
 import { ObservabilityTimeline } from './components/ui/ObservabilityTimeline';
 import { CoordinateDisplay } from './components/ui/CoordinateDisplay';
+import { FocalPlaneView } from './components/ui/FocalPlaneView';
 import { useTargets } from './hooks/useTargets';
 import { useEphemeris } from './hooks/useEphemeris';
 
@@ -46,6 +47,15 @@ function App() {
           showConstraints={showConstraints}
           showGalactic={showGalactic}
         />
+      }
+      focalPlaneView={
+        selectedTarget ? (
+          <FocalPlaneView
+            targetRa={selectedTarget.ra}
+            targetDec={selectedTarget.dec}
+            sunPosition={sunPosition}
+          />
+        ) : undefined
       }
       coordinateDisplay={
         <CoordinateDisplay

@@ -81,6 +81,34 @@ export function eclipticToEquatorial(lonDeg: number, latDeg: number): { ra: numb
   };
 }
 
+/**
+ * Compute the position angle (PA) from one sky position toward another,
+ * measured east of north in degrees.
+ *
+ * For Roman Space Telescope: the spacecraft sunshield faces the Sun,
+ * constraining the roll angle. The WFI focal plane "V2" axis (long axis,
+ * 6-detector direction) is perpendicular to the Sun–boresight plane.
+ * The PA of the +V3 axis on the sky ≈ bearing from target toward the Sun.
+ */
+export function positionAngle(
+  targetRaDeg: number, targetDecDeg: number,
+  sunRaDeg: number, sunDecDeg: number
+): number {
+  const toRad = Math.PI / 180;
+  const ra1 = targetRaDeg * toRad;
+  const dec1 = targetDecDeg * toRad;
+  const ra2 = sunRaDeg * toRad;
+  const dec2 = sunDecDeg * toRad;
+
+  const dRa = ra2 - ra1;
+  const y = Math.sin(dRa) * Math.cos(dec2);
+  const x = Math.cos(dec1) * Math.sin(dec2) - Math.sin(dec1) * Math.cos(dec2) * Math.cos(dRa);
+
+  let pa = Math.atan2(y, x);
+  if (pa < 0) pa += 2 * Math.PI;
+  return pa / toRad; // degrees
+}
+
 /** Color index (B-V) to RGB color for star rendering */
 export function colorIndexToColor(ci: number): THREE.Color {
   // Attempt to map B-V color index to approximate RGB

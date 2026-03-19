@@ -80,6 +80,7 @@ export function CelestialScene({
           <WFIFootprint
             targetRa={selectedTarget.ra}
             targetDec={selectedTarget.dec}
+            sunPosition={sunPosition}
             visible={true}
           />
         </>

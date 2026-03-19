@@ -6,9 +6,10 @@ interface AppLayoutProps {
   bottomBar: ReactNode;
   header: ReactNode;
   coordinateDisplay: ReactNode;
+  focalPlaneView?: ReactNode;
 }
 
-export function AppLayout({ viewport, sidebar, bottomBar, header, coordinateDisplay }: AppLayoutProps) {
+export function AppLayout({ viewport, sidebar, bottomBar, header, coordinateDisplay, focalPlaneView }: AppLayoutProps) {
   return (
     <div className="w-full h-full relative bg-roman-bg overflow-hidden">
       {/* 3D Viewport — full screen */}
@@ -18,6 +19,9 @@ export function AppLayout({ viewport, sidebar, bottomBar, header, coordinateDisp
 
       {/* Header — floating top bar */}
       {header}
+
+      {/* Focal Plane View — floating top-left */}
+      {focalPlaneView}
 
       {/* Side Panel — floating HUD overlay */}
       <div className="absolute top-11 right-2 bottom-14 w-72 z-10 flex flex-col pointer-events-none">
