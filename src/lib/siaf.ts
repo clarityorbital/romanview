@@ -37,7 +37,7 @@ export interface SIAFBoresight {
 export function getAllDetectors(): SIAFDetector[] {
   return Object.entries(siafData.detectors).map(([id, det]) => ({
     id,
-    ...(det as Omit<SIAFDetector, 'id'>),
+    ...(det as unknown as Omit<SIAFDetector, 'id'>),
   }));
 }
 
@@ -46,7 +46,7 @@ export function getAllDetectors(): SIAFDetector[] {
  * Returns undefined if the detector ID is not found.
  */
 export function getDetector(id: string): SIAFDetector | undefined {
-  const det = (siafData.detectors as Record<string, Omit<SIAFDetector, 'id'>>)[id];
+  const det = (siafData.detectors as unknown as Record<string, Omit<SIAFDetector, 'id'>>)[id];
   if (!det) return undefined;
   return { id, ...det };
 }

@@ -2,8 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { gaiaConSearch, adaptiveGaiaQuery } from '../vizier';
 
 describe('vizier', () => {
-  const originalFetch = globalThis.fetch;
-
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
   });

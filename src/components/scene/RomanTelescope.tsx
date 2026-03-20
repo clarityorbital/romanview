@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useLoader, useFrame, useThree } from '@react-three/fiber';
 import { STLLoader } from 'three-stdlib';
 import * as THREE from 'three';
@@ -31,6 +31,15 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
   const currentQuatRef = useRef(new THREE.Quaternion());
   const initialized = useRef(false);
 
+  // Store target coords in refs so the useFrame callback always sees current values
+  // (avoids stale closure issues with R3F's animation loop)
+  const targetRaRef = useRef(targetRa);
+  const targetDecRef = useRef(targetDec);
+  useEffect(() => {
+    targetRaRef.current = targetRa;
+    targetDecRef.current = targetDec;
+  }, [targetRa, targetDec]);
+
   // Reusable objects to avoid per-frame allocations
   const _dir = useMemo(() => new THREE.Vector3(), []);
   const _mat = useMemo(() => new THREE.Matrix4(), []);
@@ -62,10 +71,13 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
   useFrame(() => {
     if (!groupRef.current) return;
 
+    const ra = targetRaRef.current;
+    const dec = targetDecRef.current;
+
     // When a target RA/Dec is provided, point toward that sky position;
     // otherwise fall back to tracking the camera look direction.
-    if (targetRa !== undefined && targetDec !== undefined) {
-      const targetDir = raDecToCartesian(targetRa, targetDec, 1).normalize();
+    if (ra !== undefined && dec !== undefined) {
+      const targetDir = raDecToCartesian(ra, dec, 1).normalize();
       _dir.copy(targetDir);
     } else {
       camera.getWorldDirection(_dir);

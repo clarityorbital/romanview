@@ -29,7 +29,7 @@ export function useGaiaStars(
 } {
   const [stars, setStars] = useState<GaiaSource[]>([]);
   const [status, setStatus] = useState<QueryStatus>({ state: 'idle' });
-  const abortRef = useRef<AbortController>();
+  const abortRef = useRef<AbortController>(undefined);
 
   useEffect(() => {
     if (ra === undefined || dec === undefined) {

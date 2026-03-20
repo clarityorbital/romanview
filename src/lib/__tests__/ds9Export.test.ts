@@ -122,8 +122,8 @@ describe('downloadDS9Regions', () => {
     createObjectURLSpy = vi.fn().mockReturnValue('blob:mock-url');
     revokeObjectURLSpy = vi.fn();
 
-    globalThis.URL.createObjectURL = createObjectURLSpy;
-    globalThis.URL.revokeObjectURL = revokeObjectURLSpy;
+    globalThis.URL.createObjectURL = createObjectURLSpy as typeof URL.createObjectURL;
+    globalThis.URL.revokeObjectURL = revokeObjectURLSpy as typeof URL.revokeObjectURL;
   });
 
   afterEach(() => {

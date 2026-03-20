@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { encodeToHash, decodeFromHash, ObservationParams } from '../urlState';
+import { encodeToHash, decodeFromHash } from '../urlState';
+import type { ObservationParams } from '../urlState';
 
 describe('urlState', () => {
   describe('encodeToHash', () => {

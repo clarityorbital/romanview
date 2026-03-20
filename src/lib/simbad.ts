@@ -9,25 +9,29 @@ export interface SimbadResult {
  *  Returns up to 10 matching targets with coordinates.
  */
 export async function resolveName(name: string): Promise<SimbadResult[]> {
-  const safe = sanitize(name).toUpperCase();
-  // Use ident table join for comprehensive name matching (main_id, aliases, catalog IDs)
+  const safe = sanitize(name);
+  // Replace letter-digit boundaries (with or without spaces) with % wildcard
+  // to handle SIMBAD spacing: "M31"→"M%31", "NGC 4321"→"NGC%4321", matching "M  31", "NGC  4321"
+  const pattern = safe.replace(/([A-Za-z])\s*(\d)/, '$1%$2');
   const query = [
-    'SELECT TOP 10 b.main_id, b.ra, b.dec',
-    'FROM ident AS i JOIN basic AS b ON i.oidref = b.oid',
-    `WHERE UPPER(i.id) LIKE '%${safe}%'`,
-    'AND b.ra IS NOT NULL AND b.dec IS NOT NULL',
-    'ORDER BY b.main_id',
+    'SELECT TOP 10 main_id, ra, dec',
+    'FROM ident JOIN basic ON oidref = oid',
+    `WHERE id LIKE '${pattern}%'`,
+    'AND ra IS NOT NULL AND dec IS NOT NULL',
   ].join(' ');
 
-  const params = new URLSearchParams({
-    REQUEST: 'doQuery',
-    LANG: 'ADQL',
-    FORMAT: 'json',
-    QUERY: query,
-  });
-
   const response = await fetch(
-    `https://simbad.cds.unistra.fr/simbad/sim-tap/sync?${params.toString()}`
+    'https://simbad.cds.unistra.fr/simbad/sim-tap/sync',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        REQUEST: 'doQuery',
+        LANG: 'ADQL',
+        FORMAT: 'json',
+        QUERY: query,
+      }),
+    }
   );
 
   if (!response.ok) {
@@ -47,6 +51,13 @@ export async function resolveName(name: string): Promise<SimbadResult[]> {
     seen.add(id);
     results.push({ name: id, ra: Number(row[1]), dec: Number(row[2]) });
   }
+
+  // If TAP returned nothing, fall back to sesame for exact name resolution
+  if (results.length === 0) {
+    const exact = await sesameResolve(name.trim());
+    if (exact) return [exact];
+  }
+
   return results;
 }
 

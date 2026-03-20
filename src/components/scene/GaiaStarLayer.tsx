@@ -38,15 +38,11 @@ export function GaiaStarLayer({ stars, visible }: GaiaStarLayerProps) {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          array={geometry.positions}
-          count={stars.length}
-          itemSize={3}
+          args={[geometry.positions, 3]}
         />
         <bufferAttribute
           attach="attributes-size"
-          array={geometry.sizes}
-          count={stars.length}
-          itemSize={1}
+          args={[geometry.sizes, 1]}
         />
       </bufferGeometry>
       <pointsMaterial
