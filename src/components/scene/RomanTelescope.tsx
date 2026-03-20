@@ -1,8 +1,7 @@
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { useLoader, useFrame, useThree } from '@react-three/fiber';
 import { STLLoader } from 'three-stdlib';
 import * as THREE from 'three';
-import { raDecToCartesian } from '../../lib/coordinates';
 
 /**
  * Correction quaternion: 180 degrees around Y.
@@ -31,15 +30,6 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
   const currentQuatRef = useRef(new THREE.Quaternion());
   const initialized = useRef(false);
 
-  // Store target coords in refs so the useFrame callback always sees current values
-  // (avoids stale closure issues with R3F's animation loop)
-  const targetRaRef = useRef(targetRa);
-  const targetDecRef = useRef(targetDec);
-  useEffect(() => {
-    targetRaRef.current = targetRa;
-    targetDecRef.current = targetDec;
-  }, [targetRa, targetDec]);
-
   // Reusable objects to avoid per-frame allocations
   const _dir = useMemo(() => new THREE.Vector3(), []);
   const _mat = useMemo(() => new THREE.Matrix4(), []);
@@ -59,7 +49,6 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
     // Scale so longest axis is ~0.3 scene units
     const scaleFactor = 0.3 / maxDim;
     geo.scale(scaleFactor, scaleFactor, scaleFactor);
-    // Determine the model's natural forward axis after loading.
     // The STL model's aperture (optical axis) faces along its local +Y.
     // Apply a base rotation so +Z becomes the "forward" direction for lookAt.
     // Rotate -90 degrees around X to map model +Y -> world +Z.
@@ -68,17 +57,23 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
     return geo;
   }, [rawGeometry]);
 
+  // R3F v9 updates the useFrame callback ref via useLayoutEffect (synchronous),
+  // so reading targetRa/targetDec from props directly always gives current values.
+  // Do NOT use useEffect + refs — the async delay causes flickering.
   useFrame(() => {
     if (!groupRef.current) return;
 
-    const ra = targetRaRef.current;
-    const dec = targetDecRef.current;
-
     // When a target RA/Dec is provided, point toward that sky position;
     // otherwise fall back to tracking the camera look direction.
-    if (ra !== undefined && dec !== undefined) {
-      const targetDir = raDecToCartesian(ra, dec, 1).normalize();
-      _dir.copy(targetDir);
+    if (targetRa !== undefined && targetDec !== undefined) {
+      // Inline raDecToCartesian to avoid per-frame Vector3 allocation
+      const ra = THREE.MathUtils.degToRad(targetRa);
+      const dec = THREE.MathUtils.degToRad(targetDec);
+      _dir.set(
+        Math.cos(dec) * Math.cos(ra),
+        Math.sin(dec),
+        -Math.cos(dec) * Math.sin(ra)
+      );
     } else {
       camera.getWorldDirection(_dir);
     }
@@ -97,14 +92,13 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
       return;
     }
 
-    // Smooth slerp toward target quaternion (0.12 for responsive but not jarring)
+    // Smooth slerp toward target quaternion
     currentQuatRef.current.slerp(_targetQuat, 0.12);
     groupRef.current.quaternion.copy(currentQuatRef.current);
   });
 
   return (
     <group ref={groupRef}>
-      {/* Telescope mesh */}
       <mesh geometry={geometry}>
         <meshStandardMaterial
           color="#b8bcc4"
@@ -114,8 +108,6 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
           emissiveIntensity={0.1}
         />
       </mesh>
-
-      {/* Local lighting for specular highlights */}
       <pointLight intensity={0.5} distance={2} position={[0.3, 0.3, 0.3]} />
     </group>
   );
