@@ -12,6 +12,17 @@ interface RomanTelescopeProps {
 /** Default forward direction when no target is selected (+Z) */
 const DEFAULT_DIRECTION = new THREE.Vector3(0, 0, 1);
 
+/**
+ * Correction quaternion: 180 degrees around Y.
+ * Three.js lookAt() points the object's -Z axis toward the target.
+ * After the geometry base rotation, the telescope's optical axis is +Z.
+ * This 180-degree Y flip maps -Z -> +Z so the aperture faces the target.
+ */
+const FLIP_Y_180 = new THREE.Quaternion().setFromAxisAngle(
+  new THREE.Vector3(0, 1, 0),
+  Math.PI
+);
+
 export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
   const rawGeometry = useLoader(
     STLLoader,
@@ -46,22 +57,21 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
 
   // Compute target quaternion when ra/dec change
   useMemo(() => {
+    let dir: THREE.Vector3;
     if (targetRa !== null && targetDec !== null) {
-      const dir = raDecToCartesian(targetRa, targetDec, 1).normalize();
-      const mat = new THREE.Matrix4().lookAt(
-        new THREE.Vector3(0, 0, 0),
-        dir,
-        new THREE.Vector3(0, 1, 0)
-      );
-      targetQuatRef.current.setFromRotationMatrix(mat);
+      dir = raDecToCartesian(targetRa, targetDec, 1).normalize();
     } else {
-      const mat = new THREE.Matrix4().lookAt(
-        new THREE.Vector3(0, 0, 0),
-        DEFAULT_DIRECTION,
-        new THREE.Vector3(0, 1, 0)
-      );
-      targetQuatRef.current.setFromRotationMatrix(mat);
+      dir = DEFAULT_DIRECTION.clone();
     }
+
+    // lookAt builds a rotation that aims -Z toward `dir`.
+    // Then we multiply by FLIP_Y_180 so the optical axis (+Z) faces the target.
+    const mat = new THREE.Matrix4().lookAt(
+      new THREE.Vector3(0, 0, 0),
+      dir,
+      new THREE.Vector3(0, 1, 0)
+    );
+    targetQuatRef.current.setFromRotationMatrix(mat).multiply(FLIP_Y_180);
   }, [targetRa, targetDec]);
 
   useFrame(() => {
