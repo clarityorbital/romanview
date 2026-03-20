@@ -49,10 +49,11 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
     // Scale so longest axis is ~0.3 scene units
     const scaleFactor = 0.3 / maxDim;
     geo.scale(scaleFactor, scaleFactor, scaleFactor);
-    // The STL model's aperture (optical axis) faces along its local +Y.
-    // Apply a base rotation so +Z becomes the "forward" direction for lookAt.
-    // Rotate -90 degrees around X to map model +Y -> world +Z.
-    const rotMatrix = new THREE.Matrix4().makeRotationX(-Math.PI / 2);
+    // The STL model's barrel (aperture) faces along local -X (verified via
+    // bounding box analysis: wider cross-section at negative X).
+    // Rotate +90° around Y to map -X -> +Z, aligning barrel with the
+    // +Z axis that lookAt + FLIP_Y_180 will aim toward the target.
+    const rotMatrix = new THREE.Matrix4().makeRotationY(Math.PI / 2);
     geo.applyMatrix4(rotMatrix);
     return geo;
   }, [rawGeometry]);
