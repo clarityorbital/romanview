@@ -1,16 +1,14 @@
 import { useMemo } from 'react';
 import { WFI_DETECTORS, WFI_BORESIGHT } from '../../lib/roman';
-import { positionAngle } from '../../lib/coordinates';
 import { skyToFocalPlane, rotateByPA } from '../../lib/wcs';
 import { FPA_ROTATION_DEG } from '../../lib/siaf';
 import type { GaiaSource } from '../../lib/vizier';
 import type { QueryStatus } from '../../hooks/useGaiaStars';
-import type { SunPosition } from '../../lib/constraints';
 
 interface FocalPlaneViewProps {
   targetRa: number;
   targetDec: number;
-  sunPosition: SunPosition;
+  v3pa: number;
   gaiaStars: GaiaSource[];
   gaiaStatus: QueryStatus;
 }
@@ -55,12 +53,7 @@ function computeViewBounds() {
 
 const VIEW_BOUNDS = computeViewBounds();
 
-export function FocalPlaneView({ targetRa, targetDec, sunPosition, gaiaStars, gaiaStatus }: FocalPlaneViewProps) {
-  const v3pa = useMemo(
-    () => positionAngle(targetRa, targetDec, sunPosition.ra, sunPosition.dec),
-    [targetRa, targetDec, sunPosition.ra, sunPosition.dec]
-  );
-
+export function FocalPlaneView({ targetRa, targetDec, v3pa, gaiaStars, gaiaStatus }: FocalPlaneViewProps) {
   // Aperture PA = V3PA - V3IdlYAngle = V3PA - (-60) = V3PA + 60
   const apa = v3pa - FPA_ROTATION_DEG; // V3PA + 60
 

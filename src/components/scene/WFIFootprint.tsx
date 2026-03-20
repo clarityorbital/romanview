@@ -2,22 +2,17 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { Line, Text } from '@react-three/drei';
 import { WFI_DETECTORS, WFI_BORESIGHT } from '../../lib/roman';
-import { raDecToCartesian, positionAngle } from '../../lib/coordinates';
+import { raDecToCartesian } from '../../lib/coordinates';
 import { v2v3ToSky } from '../../lib/wcs';
-import type { SunPosition } from '../../lib/constraints';
 
 interface WFIFootprintProps {
   targetRa: number;
   targetDec: number;
-  sunPosition: SunPosition;
+  v3pa: number;
   visible: boolean;
 }
 
-export function WFIFootprint({ targetRa, targetDec, sunPosition, visible }: WFIFootprintProps) {
-  const v3pa = useMemo(
-    () => positionAngle(targetRa, targetDec, sunPosition.ra, sunPosition.dec),
-    [targetRa, targetDec, sunPosition.ra, sunPosition.dec]
-  );
+export function WFIFootprint({ targetRa, targetDec, v3pa, visible }: WFIFootprintProps) {
 
   const footprint = useMemo(() => {
     if (!visible) return null;

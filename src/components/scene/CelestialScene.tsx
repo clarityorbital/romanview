@@ -17,6 +17,7 @@ import type { GaiaSource } from '../../lib/vizier';
 interface CelestialSceneProps {
   sunPosition: SunPosition;
   selectedTarget: Target | null;
+  v3pa: number | null;
   showGrid: boolean;
   showConstraints: boolean;
   showGalactic: boolean;
@@ -48,6 +49,7 @@ function CameraController({ target }: { target: Target | null }) {
 export function CelestialScene({
   sunPosition,
   selectedTarget,
+  v3pa,
   showGrid,
   showConstraints,
   showGalactic,
@@ -75,7 +77,7 @@ export function CelestialScene({
         </>
       )}
 
-      {selectedTarget && (
+      {selectedTarget && v3pa !== null && (
         <>
           <SelectionIndicator
             ra={selectedTarget.ra}
@@ -85,7 +87,7 @@ export function CelestialScene({
           <WFIFootprint
             targetRa={selectedTarget.ra}
             targetDec={selectedTarget.dec}
-            sunPosition={sunPosition}
+            v3pa={v3pa}
             visible={true}
           />
         </>

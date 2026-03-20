@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 interface HeaderProps {
   showGrid: boolean;
   showConstraints: boolean;
@@ -5,6 +7,8 @@ interface HeaderProps {
   onToggleGrid: () => void;
   onToggleConstraints: () => void;
   onToggleGalactic: () => void;
+  shareButton?: ReactNode;
+  exportButton?: ReactNode;
 }
 
 export function Header({
@@ -14,6 +18,8 @@ export function Header({
   onToggleGrid,
   onToggleConstraints,
   onToggleGalactic,
+  shareButton,
+  exportButton,
 }: HeaderProps) {
   return (
     <header className="absolute top-0 left-0 right-0 z-20 pointer-events-none">
@@ -38,11 +44,18 @@ export function Header({
           </div>
         </div>
 
-        {/* Toggle Controls */}
+        {/* Toggle Controls + Action Buttons */}
         <div className="flex items-center gap-0.5 pointer-events-auto">
           <ToggleButton active={showGrid} onClick={onToggleGrid} label="GRID" hotkey="G" />
           <ToggleButton active={showConstraints} onClick={onToggleConstraints} label="CONST" hotkey="C" />
           <ToggleButton active={showGalactic} onClick={onToggleGalactic} label="GAL" hotkey="B" />
+          {(shareButton || exportButton) && (
+            <>
+              <div className="mx-1 h-4 w-px bg-roman-border" />
+              {shareButton}
+              {exportButton}
+            </>
+          )}
         </div>
       </div>
     </header>
