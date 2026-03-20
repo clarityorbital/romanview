@@ -1,4 +1,4 @@
-import { useRef, useState, Suspense } from 'react';
+import { useRef, Suspense } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
@@ -29,16 +29,15 @@ interface CelestialSceneProps {
 
 function CameraController({
   target,
-  onAnimatingChange,
+  animatingRef,
   goalLookAtRef,
 }: {
   target: Target | null;
-  onAnimatingChange: (animating: boolean) => void;
+  animatingRef: React.RefObject<boolean>;
   goalLookAtRef: React.RefObject<THREE.Vector3>;
 }) {
   const { camera } = useThree();
   const lastTargetId = useRef<string | null>(null);
-  const isAnimating = useRef(false);
   const goalPosition = useRef(new THREE.Vector3(0, 0, 3));
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 100));
 
@@ -80,12 +79,12 @@ function CameraController({
           .add(currentDir.multiplyScalar(100));
       }
 
-      isAnimating.current = true;
-      onAnimatingChange(true);
+      // Update ref synchronously — OrbitControls reads this in the same frame
+      animatingRef.current = true;
     }
 
     // Smooth animation each frame
-    if (isAnimating.current) {
+    if (animatingRef.current) {
       camera.position.lerp(goalPosition.current, 0.03);
       currentLookAt.current.lerp(goalLookAtRef.current, 0.03);
       camera.lookAt(currentLookAt.current);
@@ -95,8 +94,7 @@ function CameraController({
       const lookDist = currentLookAt.current.distanceTo(goalLookAtRef.current);
 
       if (posDist < 0.01 && lookDist < 0.5) {
-        isAnimating.current = false;
-        onAnimatingChange(false);
+        animatingRef.current = false;
         camera.position.copy(goalPosition.current);
         currentLookAt.current.copy(goalLookAtRef.current);
         camera.lookAt(currentLookAt.current);
@@ -108,31 +106,35 @@ function CameraController({
 }
 
 function SceneOrbitControls({
-  animating,
+  animatingRef,
   goalLookAtRef,
 }: {
-  animating: boolean;
+  animatingRef: React.RefObject<boolean>;
   goalLookAtRef: React.RefObject<THREE.Vector3>;
 }) {
   const orbitRef = useRef(null);
 
   useFrame(() => {
+    if (!orbitRef.current) return;
+    const controls = orbitRef.current as { enabled: boolean; target: THREE.Vector3 };
+
+    // Sync enabled state from ref — immediate, no React re-render delay
+    controls.enabled = !animatingRef.current;
+
     // After animation completes, update orbit target so user orbits around
     // the telescope/target axis rather than pure origin
-    if (!animating && orbitRef.current && goalLookAtRef.current) {
-      const orbitControls = orbitRef.current as { target: THREE.Vector3 };
+    if (!animatingRef.current && goalLookAtRef.current) {
       const idealTarget = goalLookAtRef.current
         .clone()
         .normalize()
         .multiplyScalar(2);
-      orbitControls.target.lerp(idealTarget, 0.05);
+      controls.target.lerp(idealTarget, 0.05);
     }
   });
 
   return (
     <OrbitControls
       ref={orbitRef}
-      enabled={!animating}
       enablePan={false}
       minDistance={0.5}
       maxDistance={200}
@@ -153,7 +155,7 @@ export function CelestialScene({
   showGalactic,
   gaiaStars,
 }: CelestialSceneProps) {
-  const [isAnimating, setIsAnimating] = useState(false);
+  const animatingRef = useRef(false);
   const goalLookAtRef = useRef(new THREE.Vector3(0, 0, 100));
 
   return (
@@ -208,12 +210,12 @@ export function CelestialScene({
 
       <CameraController
         target={selectedTarget}
-        onAnimatingChange={setIsAnimating}
+        animatingRef={animatingRef}
         goalLookAtRef={goalLookAtRef}
       />
 
       <SceneOrbitControls
-        animating={isAnimating}
+        animatingRef={animatingRef}
         goalLookAtRef={goalLookAtRef}
       />
 

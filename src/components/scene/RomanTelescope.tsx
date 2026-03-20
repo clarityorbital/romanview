@@ -3,16 +3,6 @@ import { useLoader, useFrame, useThree } from '@react-three/fiber';
 import { STLLoader } from 'three-stdlib';
 import * as THREE from 'three';
 
-/**
- * Correction quaternion: 180 degrees around Y.
- * Three.js lookAt() points the object's -Z axis toward the target.
- * After the geometry base rotation, the telescope's optical axis is +Z.
- * This 180-degree Y flip maps -Z -> +Z so the aperture faces the direction.
- */
-const FLIP_Y_180 = new THREE.Quaternion().setFromAxisAngle(
-  new THREE.Vector3(0, 1, 0),
-  Math.PI
-);
 
 interface RomanTelescopeProps {
   targetRa?: number;
@@ -49,10 +39,10 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
     // Scale so longest axis is ~0.3 scene units
     const scaleFactor = 0.3 / maxDim;
     geo.scale(scaleFactor, scaleFactor, scaleFactor);
-    // The STL model's barrel (aperture) faces along local -X (verified via
-    // bounding box analysis: wider cross-section at negative X).
-    // Rotate +90° around Y to map -X -> +Z, aligning barrel with the
-    // +Z axis that lookAt + FLIP_Y_180 will aim toward the target.
+    // The STL model's barrel axis is along X. The aperture (where the
+    // telescope looks) is at +X; the sun shield/structure is at -X.
+    // Ry(+90°) maps +X to -Z. lookAt() aims -Z toward the target,
+    // so the aperture naturally faces the target — no extra flip needed.
     const rotMatrix = new THREE.Matrix4().makeRotationY(Math.PI / 2);
     geo.applyMatrix4(rotMatrix);
     return geo;
@@ -80,10 +70,9 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
     }
 
     // Build a quaternion that points the telescope along the direction.
-    // lookAt builds a rotation aiming -Z toward `_dir`, then FLIP_Y_180
-    // corrects so the optical axis (+Z after geometry prep) faces the direction.
+    // lookAt aims -Z toward `_dir`, which is the aperture axis after Ry(+90°).
     _mat.lookAt(_origin, _dir, _up);
-    _targetQuat.setFromRotationMatrix(_mat).multiply(FLIP_Y_180);
+    _targetQuat.setFromRotationMatrix(_mat);
 
     if (!initialized.current) {
       // Snap to initial orientation on first frame
