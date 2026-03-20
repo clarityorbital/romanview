@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: milestone
 status: Ready
 stopped_at: Completed quick-1-01-PLAN.md (3D telescope model with cinematic camera)
-last_updated: "2026-03-20T02:47:50.041Z"
+last_updated: "2026-03-20T02:56:02.000Z"
 last_activity: 2026-03-20 — Completed 03-03-PLAN.md (Phase 3 visual verification approved -- all planning workflow features confirmed)
 progress:
   total_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 Phase: 4 of 4 (Advanced Features)
 Plan: 1 of 2 in current phase
 Status: Ready
-Last activity: 2026-03-20 — Completed quick task 1: Add 3D Roman Space Telescope model with camera pan on target selection
+Last activity: 2026-03-20 — Completed quick task 2: Telescope points toward selected target with SIMBAD autocomplete
 
 Progress: [██████████] 100% (9/9 plans)
 
@@ -88,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 03-02]: Share/Export buttons in Header toolbar with separator from toggle controls
 - [Phase 03-03]: All Phase 3 requirements verified end-to-end: PA slider, URL sharing, DS9 export confirmed working
 - [Phase quick-1]: Telescope tracks camera look direction (not target RA/Dec) for consistent orientation during orbit
+- [Quick-2]: Telescope uses raDecToCartesian for target-aware pointing with camera-direction fallback
+- [Quick-2]: SIMBAD autocomplete uses ident table JOIN (resolveName) instead of sesameResolve for broader name matching
 
 ### Pending Todos
 
@@ -98,6 +100,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Add 3D Roman Space Telescope model with camera pan on target selection | 2026-03-20 | a4185a4 | [1-add-3d-roman-space-telescope-model-with-](./quick/1-add-3d-roman-space-telescope-model-with-/) |
+| 2 | Telescope points toward selected target with SIMBAD autocomplete | 2026-03-20 | 19ee335 | [2-telescope-points-toward-selected-target-](./quick/2-telescope-points-toward-selected-target-/) |
 
 ### Blockers/Concerns
 
@@ -107,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T02:47:46.331Z
-Stopped at: Completed quick-1-01-PLAN.md (3D telescope model with cinematic camera)
+Last session: 2026-03-20T02:56:02.000Z
+Stopped at: Completed quick-2-01-PLAN.md (telescope target pointing + SIMBAD autocomplete)
 Resume file: None
