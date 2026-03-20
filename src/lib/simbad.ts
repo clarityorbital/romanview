@@ -4,9 +4,20 @@ export interface SimbadResult {
   dec: number; // degrees
 }
 
-/** Resolve a target name via SIMBAD TAP service */
+/** Resolve a target name via SIMBAD TAP service.
+ *  Uses a JOIN on the ident table for broader name matching.
+ *  Returns up to 10 matching targets with coordinates.
+ */
 export async function resolveName(name: string): Promise<SimbadResult[]> {
-  const query = `SELECT TOP 10 main_id, ra, dec FROM basic WHERE main_id LIKE '%${sanitize(name)}%' OR ident.id LIKE '%${sanitize(name)}%' ORDER BY main_id`;
+  const safe = sanitize(name).toUpperCase();
+  // Use ident table join for comprehensive name matching (main_id, aliases, catalog IDs)
+  const query = [
+    'SELECT TOP 10 b.main_id, b.ra, b.dec',
+    'FROM ident AS i JOIN basic AS b ON i.oidref = b.oid',
+    `WHERE UPPER(i.id) LIKE '%${safe}%'`,
+    'AND b.ra IS NOT NULL AND b.dec IS NOT NULL',
+    'ORDER BY b.main_id',
+  ].join(' ');
 
   const params = new URLSearchParams({
     REQUEST: 'doQuery',
@@ -26,13 +37,17 @@ export async function resolveName(name: string): Promise<SimbadResult[]> {
   const data = await response.json();
   const rows = data?.data || [];
 
-  return rows
-    .filter((row: unknown[]) => row[1] != null && row[2] != null)
-    .map((row: unknown[]) => ({
-      name: String(row[0]).trim(),
-      ra: Number(row[1]),
-      dec: Number(row[2]),
-    }));
+  // Deduplicate by main_id (multiple ident rows can map to same object)
+  const seen = new Set<string>();
+  const results: SimbadResult[] = [];
+  for (const row of rows as unknown[][]) {
+    if (row[1] == null || row[2] == null) continue;
+    const id = String(row[0]).trim();
+    if (seen.has(id)) continue;
+    seen.add(id);
+    results.push({ name: id, ra: Number(row[1]), dec: Number(row[2]) });
+  }
+  return results;
 }
 
 /** Simple SIMBAD sesame name resolver - more reliable for exact names */
