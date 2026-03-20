@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 Phase: 4 of 4 (Advanced Features)
 Plan: 1 of 2 in current phase
 Status: Ready
-Last activity: 2026-03-20 — Completed quick task 2: Telescope points toward selected target with SIMBAD autocomplete
+Last activity: 2026-03-20 — Completed quick task 3: Fix telescope barrel pointing toward selected target
 
 Progress: [██████████] 100% (9/9 plans)
 
@@ -101,6 +101,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 1 | Add 3D Roman Space Telescope model with camera pan on target selection | 2026-03-20 | a4185a4 | [1-add-3d-roman-space-telescope-model-with-](./quick/1-add-3d-roman-space-telescope-model-with-/) |
 | 2 | Telescope points toward selected target with SIMBAD autocomplete | 2026-03-20 | 19ee335 | [2-telescope-points-toward-selected-target-](./quick/2-telescope-points-toward-selected-target-/) |
+| 3 | Fix telescope barrel pointing toward selected target | 2026-03-20 | 1988233 | [3-fix-telescope-barrel-pointing-toward-sel](./quick/3-fix-telescope-barrel-pointing-toward-sel/) |
 
 ### Blockers/Concerns
 
