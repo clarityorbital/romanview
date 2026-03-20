@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react';
 import { useLoader, useFrame, useThree } from '@react-three/fiber';
 import { STLLoader } from 'three-stdlib';
 import * as THREE from 'three';
+import { raDecToCartesian } from '../../lib/coordinates';
 
 /**
  * Correction quaternion: 180 degrees around Y.
@@ -14,7 +15,12 @@ const FLIP_Y_180 = new THREE.Quaternion().setFromAxisAngle(
   Math.PI
 );
 
-export function RomanTelescope() {
+interface RomanTelescopeProps {
+  targetRa?: number;
+  targetDec?: number;
+}
+
+export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
   const rawGeometry = useLoader(
     STLLoader,
     '/models/Nancy Grace Roman Space Telescope.stl'
@@ -56,10 +62,16 @@ export function RomanTelescope() {
   useFrame(() => {
     if (!groupRef.current) return;
 
-    // Get the camera's look direction every frame
-    camera.getWorldDirection(_dir);
+    // When a target RA/Dec is provided, point toward that sky position;
+    // otherwise fall back to tracking the camera look direction.
+    if (targetRa !== undefined && targetDec !== undefined) {
+      const targetDir = raDecToCartesian(targetRa, targetDec, 1).normalize();
+      _dir.copy(targetDir);
+    } else {
+      camera.getWorldDirection(_dir);
+    }
 
-    // Build a quaternion that points the telescope along the camera direction.
+    // Build a quaternion that points the telescope along the direction.
     // lookAt builds a rotation aiming -Z toward `_dir`, then FLIP_Y_180
     // corrects so the optical axis (+Z after geometry prep) faces the direction.
     _mat.lookAt(_origin, _dir, _up);
