@@ -101,32 +101,33 @@ describe('generateDS9Regions', () => {
 });
 
 describe('downloadDS9Regions', () => {
-  let createElementSpy: ReturnType<typeof vi.spyOn>;
+  let mockLink: { href: string; download: string; click: ReturnType<typeof vi.fn> };
   let createObjectURLSpy: ReturnType<typeof vi.fn>;
   let revokeObjectURLSpy: ReturnType<typeof vi.fn>;
+  let savedDocument: typeof globalThis.document;
 
   beforeEach(() => {
-    // Mock DOM APIs
-    const mockLink = {
+    mockLink = {
       href: '',
       download: '',
       click: vi.fn(),
-      style: {} as CSSStyleDeclaration,
     };
 
-    createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(
-      mockLink as unknown as HTMLAnchorElement
-    );
+    // Mock document.createElement in Node environment (no jsdom)
+    savedDocument = globalThis.document;
+    globalThis.document = {
+      createElement: vi.fn().mockReturnValue(mockLink),
+    } as unknown as Document;
 
     createObjectURLSpy = vi.fn().mockReturnValue('blob:mock-url');
     revokeObjectURLSpy = vi.fn();
 
-    // Assign URL methods
     globalThis.URL.createObjectURL = createObjectURLSpy;
     globalThis.URL.revokeObjectURL = revokeObjectURLSpy;
   });
 
   afterEach(() => {
+    globalThis.document = savedDocument;
     vi.restoreAllMocks();
   });
 
@@ -134,26 +135,19 @@ describe('downloadDS9Regions', () => {
     downloadDS9Regions(10.6847, 41.2687, 90, 'M31');
 
     // Should create an anchor element
-    expect(createElementSpy).toHaveBeenCalledWith('a');
+    expect(globalThis.document.createElement).toHaveBeenCalledWith('a');
 
     // Should create a blob URL
     expect(createObjectURLSpy).toHaveBeenCalledOnce();
     const blobArg = createObjectURLSpy.mock.calls[0][0];
     expect(blobArg).toBeInstanceOf(Blob);
 
-    // Should trigger download and cleanup
+    // Should trigger click and cleanup
+    expect(mockLink.click).toHaveBeenCalledOnce();
     expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:mock-url');
   });
 
   it('uses target name in filename when provided', () => {
-    const mockLink = {
-      href: '',
-      download: '',
-      click: vi.fn(),
-      style: {} as CSSStyleDeclaration,
-    };
-    createElementSpy.mockReturnValue(mockLink as unknown as HTMLAnchorElement);
-
     downloadDS9Regions(10.6847, 41.2687, 90, 'M31');
     expect(mockLink.download).toContain('M31');
     expect(mockLink.download).toContain('.reg');
