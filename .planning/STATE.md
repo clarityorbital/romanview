@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 Phase: 4 of 4 (Advanced Features)
 Plan: 1 of 2 in current phase
 Status: Ready
-Last activity: 2026-03-20 — Completed quick task 3: Fix telescope barrel pointing toward selected target
+Last activity: 2026-03-20 — Completed quick task 4: Realistic multi-material Roman telescope
 
 Progress: [██████████] 100% (9/9 plans)
 
@@ -90,6 +90,7 @@ Recent decisions affecting current work:
 - [Phase quick-1]: Telescope tracks camera look direction (not target RA/Dec) for consistent orientation during orbit
 - [Quick-2]: Telescope uses raDecToCartesian for target-aware pointing with camera-direction fallback
 - [Quick-2]: SIMBAD autocomplete uses ident table JOIN (resolveName) instead of sesameResolve for broader name matching
+- [Quick-4]: STL geometry segmented by triangle centroid classification in raw pre-rotation coords; four material zones with procedural solar panel shader
 
 ### Pending Todos
 
@@ -102,6 +103,7 @@ None yet.
 | 1 | Add 3D Roman Space Telescope model with camera pan on target selection | 2026-03-20 | a4185a4 | [1-add-3d-roman-space-telescope-model-with-](./quick/1-add-3d-roman-space-telescope-model-with-/) |
 | 2 | Telescope points toward selected target with SIMBAD autocomplete | 2026-03-20 | 19ee335 | [2-telescope-points-toward-selected-target-](./quick/2-telescope-points-toward-selected-target-/) |
 | 3 | Fix telescope barrel pointing toward selected target | 2026-03-20 | 1988233 | [3-fix-telescope-barrel-pointing-toward-sel](./quick/3-fix-telescope-barrel-pointing-toward-sel/) |
+| 4 | Realistic multi-material Roman telescope | 2026-03-20 | 49c0b57 | [4-realistic-multi-material-roman-telescope](./quick/4-realistic-multi-material-roman-telescope/) |
 
 ### Blockers/Concerns
 
@@ -111,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T02:56:02.000Z
-Stopped at: Completed quick-2-01-PLAN.md (telescope target pointing + SIMBAD autocomplete)
+Last session: 2026-03-20T04:43:35Z
+Stopped at: Completed quick-4 (realistic multi-material Roman telescope)
 Resume file: None
