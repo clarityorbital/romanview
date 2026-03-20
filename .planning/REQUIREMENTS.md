@@ -28,9 +28,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Planning Workflow
 
-- [ ] **PLAN-01**: Interactive PA slider shows the Sun-constrained ±15° roll range for the selected target and date, with footprint rotating in real-time
-- [ ] **PLAN-02**: Observation state (target, PA, date, filter) encoded in shareable URL — observers can send a link to collaborators
-- [ ] **PLAN-03**: User can export WFI footprint as DS9 region file (.reg) with polygon regions for each SCA in FK5 coordinates
+- [x] **PLAN-01**: Interactive PA slider shows the Sun-constrained ±15° roll range for the selected target and date, with footprint rotating in real-time
+- [x] **PLAN-02**: Observation state (target, PA, date, filter) encoded in shareable URL — observers can send a link to collaborators
+- [x] **PLAN-03**: User can export WFI footprint as DS9 region file (.reg) with polygon regions for each SCA in FK5 coordinates
 
 ### Advanced Features
 
@@ -87,9 +87,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STAR-01 | Phase 2 | Complete |
 | STAR-02 | Phase 2 | Complete |
 | STAR-03 | Phase 2 | Complete |
-| PLAN-01 | Phase 3 | Pending |
-| PLAN-02 | Phase 3 | Pending |
-| PLAN-03 | Phase 3 | Pending |
+| PLAN-01 | Phase 3 | Complete |
+| PLAN-02 | Phase 3 | Complete |
+| PLAN-03 | Phase 3 | Complete |
 | ADV-01 | Phase 4 | Pending |
 | ADV-02 | Phase 4 | Pending |
 | ADV-03 | Phase 4 | Pending |
