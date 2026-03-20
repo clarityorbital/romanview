@@ -170,12 +170,9 @@ export function CelestialScene({
       <directionalLight intensity={0.6} position={[5, 3, 5]} />
       <pointLight intensity={0.3} position={[0, 0.5, 0.5]} />
 
-      {/* 3D Roman Space Telescope at origin */}
+      {/* 3D Roman Space Telescope at origin — tracks camera look direction */}
       <Suspense fallback={null}>
-        <RomanTelescope
-          targetRa={selectedTarget?.ra ?? null}
-          targetDec={selectedTarget?.dec ?? null}
-        />
+        <RomanTelescope />
       </Suspense>
 
       <StarField />

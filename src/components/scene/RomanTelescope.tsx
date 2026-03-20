@@ -1,38 +1,36 @@
 import { useRef, useMemo } from 'react';
-import { useLoader, useFrame } from '@react-three/fiber';
+import { useLoader, useFrame, useThree } from '@react-three/fiber';
 import { STLLoader } from 'three-stdlib';
 import * as THREE from 'three';
-import { raDecToCartesian } from '../../lib/coordinates';
-
-interface RomanTelescopeProps {
-  targetRa: number | null;
-  targetDec: number | null;
-}
-
-/** Default forward direction when no target is selected (+Z) */
-const DEFAULT_DIRECTION = new THREE.Vector3(0, 0, 1);
 
 /**
  * Correction quaternion: 180 degrees around Y.
  * Three.js lookAt() points the object's -Z axis toward the target.
  * After the geometry base rotation, the telescope's optical axis is +Z.
- * This 180-degree Y flip maps -Z -> +Z so the aperture faces the target.
+ * This 180-degree Y flip maps -Z -> +Z so the aperture faces the direction.
  */
 const FLIP_Y_180 = new THREE.Quaternion().setFromAxisAngle(
   new THREE.Vector3(0, 1, 0),
   Math.PI
 );
 
-export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
+export function RomanTelescope() {
   const rawGeometry = useLoader(
     STLLoader,
     '/models/Nancy Grace Roman Space Telescope.stl'
   );
 
+  const { camera } = useThree();
   const groupRef = useRef<THREE.Group>(null);
-  const targetQuatRef = useRef(new THREE.Quaternion());
   const currentQuatRef = useRef(new THREE.Quaternion());
   const initialized = useRef(false);
+
+  // Reusable objects to avoid per-frame allocations
+  const _dir = useMemo(() => new THREE.Vector3(), []);
+  const _mat = useMemo(() => new THREE.Matrix4(), []);
+  const _targetQuat = useMemo(() => new THREE.Quaternion(), []);
+  const _up = useMemo(() => new THREE.Vector3(0, 1, 0), []);
+  const _origin = useMemo(() => new THREE.Vector3(0, 0, 0), []);
 
   // Center and scale geometry once
   const geometry = useMemo(() => {
@@ -55,38 +53,28 @@ export function RomanTelescope({ targetRa, targetDec }: RomanTelescopeProps) {
     return geo;
   }, [rawGeometry]);
 
-  // Compute target quaternion when ra/dec change
-  useMemo(() => {
-    let dir: THREE.Vector3;
-    if (targetRa !== null && targetDec !== null) {
-      dir = raDecToCartesian(targetRa, targetDec, 1).normalize();
-    } else {
-      dir = DEFAULT_DIRECTION.clone();
-    }
-
-    // lookAt builds a rotation that aims -Z toward `dir`.
-    // Then we multiply by FLIP_Y_180 so the optical axis (+Z) faces the target.
-    const mat = new THREE.Matrix4().lookAt(
-      new THREE.Vector3(0, 0, 0),
-      dir,
-      new THREE.Vector3(0, 1, 0)
-    );
-    targetQuatRef.current.setFromRotationMatrix(mat).multiply(FLIP_Y_180);
-  }, [targetRa, targetDec]);
-
   useFrame(() => {
     if (!groupRef.current) return;
 
+    // Get the camera's look direction every frame
+    camera.getWorldDirection(_dir);
+
+    // Build a quaternion that points the telescope along the camera direction.
+    // lookAt builds a rotation aiming -Z toward `_dir`, then FLIP_Y_180
+    // corrects so the optical axis (+Z after geometry prep) faces the direction.
+    _mat.lookAt(_origin, _dir, _up);
+    _targetQuat.setFromRotationMatrix(_mat).multiply(FLIP_Y_180);
+
     if (!initialized.current) {
       // Snap to initial orientation on first frame
-      currentQuatRef.current.copy(targetQuatRef.current);
+      currentQuatRef.current.copy(_targetQuat);
       groupRef.current.quaternion.copy(currentQuatRef.current);
       initialized.current = true;
       return;
     }
 
-    // Smooth slerp toward target quaternion
-    currentQuatRef.current.slerp(targetQuatRef.current, 0.05);
+    // Smooth slerp toward target quaternion (0.12 for responsive but not jarring)
+    currentQuatRef.current.slerp(_targetQuat, 0.12);
     groupRef.current.quaternion.copy(currentQuatRef.current);
   });
 
